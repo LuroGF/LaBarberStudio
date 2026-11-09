@@ -3,6 +3,8 @@
 Reservas online y panel de administración para LA BARBER STUDIO (Fuenlabrada, Madrid).
 Next.js 16 (App Router, TypeScript) · Tailwind CSS 4 · Supabase (PostgreSQL, Auth, RLS).
 
+Producción: [https://labarber-studio.vercel.app](https://labarber-studio.vercel.app)
+
 ## Estado del proyecto
 
 | Fase | Contenido | Estado |
