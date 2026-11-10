@@ -45,8 +45,31 @@ body {
   animation: fade-up 0.35s ease-out both;
 }
 
+@keyframes auth-panel-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes auth-panel-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-auth-panel-left {
+  animation: auth-panel-left 0.28s ease-out both;
+}
+
+.animate-auth-panel-right {
+  animation: auth-panel-right 0.28s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up {
+    animation: none;
+  }
+
+  .animate-auth-panel-left,
+  .animate-auth-panel-right {
     animation: none;
   }
 }

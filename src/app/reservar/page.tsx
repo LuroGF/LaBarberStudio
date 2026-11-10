@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { BookingForm } from "./booking-form";
 import { Wordmark } from "@/components/wordmark";
+import { getOptionalCustomer } from "@/lib/customer-auth";
 import { addDaysStr, todayMadrid } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
 import type { Service } from "@/lib/types";
@@ -15,7 +16,7 @@ export const metadata = {
 async function BookingContent() {
   await connection();
   const supabase = createServiceClient();
-  const [{ data: servicesData, error: servicesError }, { data: settings }] = await Promise.all([
+  const [{ data: servicesData, error: servicesError }, { data: settings }, customer] = await Promise.all([
     supabase
       .from("services")
       .select("id, name, description, price_cents, duration_minutes, is_active, sort_order")
@@ -24,6 +25,7 @@ async function BookingContent() {
       .order("sort_order")
       .order("created_at"),
     supabase.from("business_settings").select("max_advance_days").eq("id", true).single(),
+    getOptionalCustomer(),
   ]);
 
   const services = (servicesData ?? []) as Service[];
@@ -38,7 +40,11 @@ async function BookingContent() {
           <p className="mt-1 text-sm text-muted">Inténtalo de nuevo dentro de unos minutos.</p>
         </div>
       ) : (
-        <BookingForm services={services} minDate={minDate} maxDate={maxDate} />
+        <BookingForm services={services} minDate={minDate} maxDate={maxDate} initialCustomer={customer ? {
+          fullName: customer.full_name,
+          phone: customer.phone,
+          email: customer.email ?? "",
+        } : undefined} />
       )}
     </>
   );
@@ -63,6 +69,9 @@ export default function BookingPage() {
         </Link>
         <h1 className="mt-5 text-2xl font-extrabold tracking-tight">RESERVA TU CITA</h1>
         <p className="mt-2 text-sm text-muted">Elige lo que necesitas y encuentra tu mejor momento.</p>
+        <Link href="/mi-cuenta" className="mt-3 inline-block text-sm text-muted underline underline-offset-4">
+          Ya tengo cuenta · Ver mis citas
+        </Link>
       </header>
       <Suspense fallback={<BookingFallback />}>
         <BookingContent />

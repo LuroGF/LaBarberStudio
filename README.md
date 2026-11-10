@@ -14,7 +14,8 @@ Producción: [https://labarber-studio.vercel.app](https://labarber-studio.vercel
 | 3 | Web pública y asistente de reserva del cliente, enlace de gestión `/cita/[token]` | Hecha (pendiente de probar una cita real) |
 | 4 | Panel: resumen, calendario día/semana/mes, gestión de citas | Hecha (pendiente de probar con citas reales) |
 | 5 | Clientes, ajustes, notificaciones y recordatorios por WhatsApp manual, PWA | Hecha |
-| 6 | Textos legales, copias de seguridad, despliegue | Pendiente |
+| 6 | Portal de clientes (correo + contraseña), perfil, citas y calendario | Hecha |
+| 7 | Textos legales, copias de seguridad, despliegue | Pendiente |
 
 El botón de la portada abre `/reservar`: permite elegir un servicio activo, consultar huecos reales,
 crear la cita desde el servidor y obtener un enlace privado para consultarla o cancelarla.
@@ -22,8 +23,8 @@ crear la cita desde el servidor y obtener un enlace privado para consultarla o c
 ## Puesta en marcha
 
 1. Crea un proyecto en [supabase.com](https://supabase.com) (región UE).
-2. En *SQL Editor* ejecuta, en este orden, los archivos de `supabase/migrations/`: `0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `0004_admin_functions.sql`, `0005_rebrand_la_barber_studio.sql` (o `supabase db push` con la CLI).
-3. En *Authentication → Users* crea el usuario de Eduardo. Desactiva el registro público (*Sign In / Providers → Allow new users to sign up = off*).
+2. En *SQL Editor* ejecuta, en este orden, los archivos de `supabase/migrations/`: `0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `0004_admin_functions.sql`, `0005_rebrand_la_barber_studio.sql`, `0006_customer_portal.sql` (o `supabase db push` con la CLI).
+3. En *Authentication → Users* crea el usuario administrador. Para el portal de clientes, deja permitido el registro por correo y mantén activada la confirmación de email. Configura las URL de redirección `http://localhost:3000/**` y `https://labarber-studio.vercel.app/**`. El teléfono sigue siendo obligatorio como dato de contacto, pero no se usa para autenticar.
 4. Dale permisos de administrador (SQL Editor):
    ```sql
    insert into public.profiles (id, full_name, role)
@@ -47,11 +48,13 @@ src/app/admin/(panel)          Panel protegido (layout con navegación)
 src/lib/schedule.ts            Zona horaria de Madrid, euros, tramos (funciones puras, con tests)
 src/app/reservar               Flujo público de reserva
 src/app/cita/[token]           Consulta y cancelación con enlace privado
+src/app/mi-cuenta              Portal: acceso, perfil, historial, cancelación y cambio de cita
 src/app/api/disponibilidad     Horas disponibles (la service_role permanece en el servidor)
+src/app/api/**/calendar        Archivos .ics para Apple Calendar y Outlook
 src/app/api/cron/recordatorios Prepara los recordatorios de 24 h (protegido por CRON_SECRET)
 src/lib/auth.ts                requireAdmin(): sesión + rol, se repite en cada página y acción
 src/lib/supabase/              Cliente de usuario (RLS) y cliente de servidor (service_role)
-src/proxy.ts                   Refresca la sesión y protege /admin
+src/proxy.ts                   Refresca la sesión y protege /admin y /mi-cuenta
 supabase/migrations/           Esquema, funciones de reserva, RLS y operaciones del panel
 tests/                         Pruebas (ver abajo)
 ```
@@ -63,6 +66,7 @@ Decisiones de diseño que conviene mantener:
 - **Cada cita guarda precio, duración y nombre del servicio** en el momento de reservar.
 - **Nada se cancela en silencio**: si un bloqueo o un cambio de horario afecta a citas, el panel lo avisa y exige una decisión explícita.
 - Las funciones de reserva solo las puede ejecutar `service_role` (servidor). El público anónimo solo lee servicios activos, horarios y ajustes.
+- Una cuenta de cliente solo se vincula a `customers` después de que Supabase confirme la propiedad del teléfono. Las cancelaciones y cambios vuelven a comprobar la propiedad y el plazo dentro de PostgreSQL.
 - Todo se guarda en `timestamptz` y se muestra en Europe/Madrid (con pruebas de los cambios de hora de marzo y octubre).
 - Next.js 16 con `cacheComponents`: todo `/admin` depende de cookies y va bajo `<Suspense>`. Antes de tocar rutas, lee `node_modules/next/dist/docs/` (esta versión tiene cambios respecto a lo habitual; ver `AGENTS.md`).
 

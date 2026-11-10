@@ -7,7 +7,13 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 // Estas pruebas ejecutan las migraciones reales sobre PostgreSQL (PGlite) con un
 // "auth" y unos roles equivalentes a los de Supabase.
-const MIGRATIONS = ["0001_schema.sql", "0002_functions.sql", "0003_rls.sql", "0004_admin_functions.sql"];
+const MIGRATIONS = [
+  "0001_schema.sql",
+  "0002_functions.sql",
+  "0003_rls.sql",
+  "0004_admin_functions.sql",
+  "0006_customer_portal.sql",
+];
 const HASH = (n: number) => String(n).padStart(64, "0");
 
 let db: PGlite;
@@ -15,6 +21,7 @@ let serviceId: string;
 let barberId: string;
 let adminId: string;
 let otherUserId: string;
+let customerUserId: string;
 
 async function asRole<T>(role: string, uid: string | null, fn: () => Promise<T>): Promise<T> {
   await db.exec(`select set_config('request.jwt.claim.sub', '${uid ?? ""}', false)`);
@@ -77,8 +84,12 @@ beforeAll(async () => {
   const other = await db.query<{ id: string }>(
     `insert into auth.users (email) values ('otro@example.com') returning id`,
   );
+  const customerUser = await db.query<{ id: string }>(
+    `insert into auth.users (email) values ('cliente@example.com') returning id`,
+  );
   adminId = admin.rows[0].id;
   otherUserId = other.rows[0].id;
+  customerUserId = customerUser.rows[0].id;
   await db.query(`insert into public.profiles (id, role) values ($1, 'admin')`, [adminId]);
 
   barberId = (await db.query<{ id: string }>(`select id from public.barbers`)).rows[0].id;
@@ -404,6 +415,68 @@ describe("cancelaciones por enlace seguro", () => {
     await expect(
       db.query(`select public.cancel_appointment_by_token($1)`, [HASH(102)]),
     ).rejects.toThrow(/NOT_CANCELLABLE/);
+  });
+});
+
+describe("portal de clientes", () => {
+  const customerPhone = "+34612000123";
+
+  it("solo muestra al cliente sus propios datos y citas", async () => {
+    await db.query(
+      `insert into public.customers (full_name, phone, auth_user_id)
+       values ('Cliente Portal', $1, $2)`,
+      [customerPhone, customerUserId],
+    );
+    const date = await madridDate(70);
+    const [first] = await slots(date);
+    await book(`${first}:00Z`, customerPhone, 700, "Cliente Portal");
+
+    await asRole("authenticated", customerUserId, async () => {
+      const customers = await db.query<{ phone: string }>(`select phone from public.customers`);
+      expect(customers.rows).toEqual([{ phone: customerPhone }]);
+      expect((await db.query(`select id from public.appointments`)).rows).toHaveLength(1);
+    });
+    await asRole("authenticated", otherUserId, async () => {
+      expect((await db.query(`select id from public.appointments`)).rows).toHaveLength(0);
+    });
+  });
+
+  it("cancela su propia cita, pero no una cita ajena", async () => {
+    const own = (await db.query<{ id: string }>(
+      `select a.id from public.appointments a join public.customers c on c.id = a.customer_id
+        where c.auth_user_id = $1 and a.status = 'confirmed' limit 1`,
+      [customerUserId],
+    )).rows[0];
+    await asRole("authenticated", otherUserId, async () => {
+      await expect(db.query(`select public.cancel_customer_appointment($1)`, [own.id])).rejects.toThrow(/NOT_FOUND/);
+    });
+    await asRole("authenticated", customerUserId, async () => {
+      await db.query(`select public.cancel_customer_appointment($1)`, [own.id]);
+    });
+    const status = await db.query<{ status: string }>(`select status from public.appointments where id = $1`, [own.id]);
+    expect(status.rows[0].status).toBe("cancelled");
+  });
+
+  it("cambia una cita a un hueco disponible de forma atómica", async () => {
+    const sourceDate = await madridDate(71);
+    const targetDate = await madridDate(72);
+    const [source] = await slots(sourceDate);
+    const [target] = await slots(targetDate);
+    const made = await book(`${source}:00Z`, customerPhone, 701, "Cliente Portal");
+    const appointmentId = made.rows[0].out_id;
+    await asRole("authenticated", customerUserId, async () => {
+      await db.query(`select public.reschedule_customer_appointment($1, $2, $3::timestamptz)`, [
+        appointmentId,
+        serviceId,
+        `${target}:00Z`,
+      ]);
+    });
+    const changed = await db.query<{ starts: string }>(
+      `select to_char(starts_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI') as starts
+         from public.appointments where id = $1`,
+      [appointmentId],
+    );
+    expect(changed.rows[0].starts).toBe(target);
   });
 });
 

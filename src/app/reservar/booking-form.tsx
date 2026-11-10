@@ -10,6 +10,7 @@ type Props = {
   services: Service[];
   minDate: string;
   maxDate: string;
+  initialCustomer?: { fullName: string; phone: string; email: string };
 };
 
 const initialState: BookingActionState = {};
@@ -24,7 +25,7 @@ const formatSlot = (slot: string) =>
     timeZone: "Europe/Madrid",
   }).format(new Date(slot));
 
-export function BookingForm({ services, minDate, maxDate }: Props) {
+export function BookingForm({ services, minDate, maxDate, initialCustomer }: Props) {
   const [state, action, pending] = useActionState(createBooking, initialState);
   const [serviceId, setServiceId] = useState(services[0]?.id ?? "");
   const [date, setDate] = useState("");
@@ -189,15 +190,15 @@ export function BookingForm({ services, minDate, maxDate }: Props) {
           <div className="mt-3 space-y-3">
             <label className="block text-sm text-muted" htmlFor="full-name">
               Nombre y apellidos
-              <input id="full-name" name="fullName" required minLength={2} maxLength={120} autoComplete="name" className={`${field} mt-1`} />
+              <input id="full-name" name="fullName" defaultValue={initialCustomer?.fullName} required minLength={2} maxLength={120} autoComplete="name" className={`${field} mt-1`} />
             </label>
             <label className="block text-sm text-muted" htmlFor="phone">
               Teléfono
-              <input id="phone" name="phone" required inputMode="tel" autoComplete="tel" maxLength={24} placeholder="600 000 000" className={`${field} mt-1`} />
+              <input id="phone" name="phone" defaultValue={initialCustomer?.phone} readOnly={Boolean(initialCustomer)} required inputMode="tel" autoComplete="tel" maxLength={24} placeholder="600 000 000" className={`${field} mt-1 ${initialCustomer ? "opacity-70" : ""}`} />
             </label>
             <label className="block text-sm text-muted" htmlFor="email">
               Correo electrónico (opcional)
-              <input id="email" name="email" type="email" autoComplete="email" maxLength={254} className={`${field} mt-1`} />
+              <input id="email" name="email" type="email" defaultValue={initialCustomer?.email} autoComplete="email" maxLength={254} className={`${field} mt-1`} />
             </label>
             <label className="block text-sm text-muted" htmlFor="notes">
               Observaciones (opcional)

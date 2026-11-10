@@ -14,6 +14,12 @@ export default function Home() {
         >
           RESERVAR CITA
         </Link>
+        <Link
+          href="/mi-cuenta"
+          className="mt-3 inline-flex h-12 items-center justify-center rounded-xl border border-graphite px-7 text-sm font-semibold transition hover:border-foreground"
+        >
+          MIS CITAS
+        </Link>
         <p className="mt-10 text-xs text-muted/70">
           Reserva online de forma rápida, segura y sin llamadas.
         </p>

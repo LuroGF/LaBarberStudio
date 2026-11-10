@@ -6,6 +6,7 @@ import { CalendarDays, CheckCircle2, Clock, Scissors } from "lucide-react";
 import { cancelAppointment } from "./actions";
 import { Wordmark } from "@/components/wordmark";
 import { hashManageToken, MANAGE_TOKEN_RE } from "@/lib/booking";
+import { googleCalendarUrl } from "@/lib/calendar";
 import { formatEuros, formatMadrid } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
 
@@ -47,11 +48,18 @@ async function AppointmentContent({
 
   const supabase = createServiceClient();
   await supabase.rpc("expire_pending_appointments");
-  const { data, error } = await supabase.rpc("get_appointment_by_token", {
-    p_token_hash: hashManageToken(token),
-  });
+  const [{ data, error }, { data: settings }] = await Promise.all([
+    supabase.rpc("get_appointment_by_token", { p_token_hash: hashManageToken(token) }),
+    supabase.from("business_settings").select("address").eq("id", true).single(),
+  ]);
   const appointment = (Array.isArray(data) ? data[0] : null) as Appointment | null;
   if (error || !appointment) notFound();
+  const googleUrl = googleCalendarUrl({
+    id: appointment.out_id,
+    serviceName: appointment.out_service_name,
+    startsAt: appointment.out_starts_at,
+    endsAt: appointment.out_ends_at,
+  }, settings?.address ?? "LA BARBER STUDIO");
 
   return (
     <>
@@ -111,6 +119,17 @@ async function AppointmentContent({
             </div>
           </div>
         </dl>
+
+        {appointment.out_status === "confirmed" && (
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <a href={googleUrl} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center justify-center rounded-xl border border-graphite text-center text-xs font-semibold">
+              GOOGLE CALENDAR
+            </a>
+            <a href={`/api/cita/${token}/calendar`} className="inline-flex h-11 items-center justify-center rounded-xl border border-graphite text-center text-xs font-semibold">
+              APPLE / OUTLOOK
+            </a>
+          </div>
+        )}
 
         {appointment.out_can_cancel && (
           <details className="mt-5">
