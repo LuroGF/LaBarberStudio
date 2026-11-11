@@ -6,6 +6,8 @@
   --graphite: #3e3e3e;
   --foreground: #d9d9d9;
   --muted: #9a9a9a;
+  --gold: #c9a45c;
+  --gold-light: #e0c27a;
 }
 
 @theme inline {
@@ -14,6 +16,8 @@
   --color-graphite: var(--graphite);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
   --font-sans: "Montserrat Variable", Montserrat, system-ui, sans-serif;
   --font-display: "Montserrat Variable", Montserrat, system-ui, sans-serif;
   --font-brand: "Montserrat Variable", Montserrat, system-ui, sans-serif;
