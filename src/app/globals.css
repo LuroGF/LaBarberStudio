@@ -60,6 +60,10 @@ body {
     linear-gradient(135deg, #252525 0%, #111111 48%, #1d1d1d 100%);
 }
 
+.services-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
 @keyframes auth-panel-left {
   from { opacity: 0; transform: translateX(-12px); }
   to { opacity: 1; transform: translateX(0); }

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { ArrowRight, ArrowUpRight, AtSign, CalendarDays, Clock3, MapPin, MessageCircle, Scissors, Sparkles, UserRound } from "lucide-react";
+import { ArrowRight, ArrowUpRight, AtSign, CalendarDays, Clock3, MapPin, MessageCircle, Sparkles, UserRound } from "lucide-react";
 import { Wordmark } from "@/components/wordmark";
 import { WEEKDAYS, formatEuros } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
@@ -61,14 +61,25 @@ async function LandingContent() {
   const instagramHandle = settings.instagram_handle.replace(/^@/, "");
   const instagramUrl = instagramHandle ? `https://instagram.com/${instagramHandle}` : null;
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address)}`;
+  const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(settings.address)}&output=embed`;
 
   return (
     <>
       <SiteHeader />
       <main id="inicio" className="overflow-hidden pb-24 md:pb-0">
-        <section className="landing-grid relative border-b border-white/10">
-          <div className="mx-auto grid min-h-[calc(100dvh-5rem)] max-w-7xl items-center gap-14 px-5 py-16 sm:px-8 lg:grid-cols-[1.08fr_0.92fr] lg:py-20">
-            <div className="relative z-10 animate-fade-up">
+        <section className="relative isolate min-h-[calc(100dvh-5rem)] overflow-hidden border-b border-white/10">
+          <Image
+            src="/brand/barbershop-hero-v1.webp"
+            alt="Interior de una barbería con un sillón de barbero"
+            fill
+            priority
+            sizes="100vw"
+            className="-z-20 object-cover object-[62%_center]"
+          />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(17,17,17,0.98)_0%,rgba(17,17,17,0.88)_38%,rgba(17,17,17,0.32)_72%,rgba(17,17,17,0.42)_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(17,17,17,0.65),transparent_45%)]" />
+          <div className="mx-auto flex min-h-[calc(100dvh-5rem)] max-w-7xl items-center px-5 py-16 sm:px-8 lg:py-20">
+            <div className="relative z-10 max-w-4xl animate-fade-up">
               <p className="mb-7 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.24em] text-muted"><span className="h-px w-10 bg-muted" /> Barbería en Fuenlabrada</p>
               <h1 className="max-w-4xl text-[clamp(3.5rem,10vw,8.6rem)] font-black uppercase leading-[0.79] tracking-[-0.075em] text-white">
                 Tu estilo.<br /><span className="text-muted">Tus reglas.</span>
@@ -79,17 +90,6 @@ async function LandingContent() {
                   Reservar cita <ArrowRight className="transition group-hover:translate-x-1" size={18} />
                 </Link>
                 <Link href="/mi-cuenta" className="inline-flex h-14 items-center justify-center gap-3 rounded-full border border-white/20 px-7 text-sm font-bold uppercase tracking-wide transition hover:border-white">Consultar mis citas</Link>
-              </div>
-            </div>
-
-            <div aria-hidden="true" className="landing-metal relative mx-auto aspect-[4/5] w-full max-w-[31rem] overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl shadow-black/50">
-              <div className="absolute inset-6 rounded-[1.5rem] border border-white/10" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Image src="/brand/lb-mark.svg" alt="" width={300} height={300} className="h-auto w-1/2 opacity-95 drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]" priority />
-              </div>
-              <div className="absolute inset-x-8 bottom-8 flex items-end justify-between border-t border-white/15 pt-5">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-white">Precisión<br />en cada detalle</p>
-                <Scissors className="text-muted" size={28} strokeWidth={1.5} />
               </div>
             </div>
           </div>
@@ -105,7 +105,7 @@ async function LandingContent() {
               <p className="max-w-md leading-7 text-muted">Precios y duración claros antes de reservar. Tú eliges el servicio y la hora que mejor te encaja.</p>
             </div>
             {services.length ? (
-              <div className="grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10 md:grid-cols-2">
+              <div className="services-grid grid gap-px overflow-hidden rounded-3xl border border-white/10 bg-white/10">
                 {services.map((service, index) => (
                   <Link href={`/reservar?servicio=${service.id}`} key={service.id} className="group flex min-h-64 flex-col justify-between bg-[#1c1c1c] p-7 transition hover:bg-[#242424] sm:p-9">
                     <div>
@@ -163,6 +163,19 @@ async function LandingContent() {
                   {formatHours(hours).map(({ day, value }) => <div key={day} className="flex items-center justify-between gap-5 py-3 text-sm"><dt className="font-semibold text-white">{day}</dt><dd className="text-right text-muted">{value}</dd></div>)}
                 </dl>
               </div>
+            </div>
+            <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-background">
+              <iframe
+                title={`Mapa de ${settings.business_name}`}
+                src={mapEmbedUrl}
+                className="h-[22rem] w-full border-0 grayscale-[0.85] contrast-[1.08] sm:h-[30rem]"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                allowFullScreen
+              />
+              <a href={mapsUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-4 border-t border-white/10 px-6 py-4 text-sm font-bold transition hover:bg-white/5">
+                Abrir en Google Maps <ArrowUpRight size={18} />
+              </a>
             </div>
           </div>
         </section>
