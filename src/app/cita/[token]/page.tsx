@@ -148,9 +148,14 @@ async function AppointmentContent({
         )}
       </section>
 
-      <Link href="/reservar" className="mt-5 text-center text-sm text-muted underline underline-offset-4">
-        Reservar otra cita
-      </Link>
+      <div className="mt-5 grid grid-cols-2 gap-2">
+        <Link href="/" className="inline-flex h-11 items-center justify-center rounded-xl border border-graphite text-center text-xs font-semibold transition hover:border-foreground">
+          VOLVER AL INICIO
+        </Link>
+        <Link href="/reservar" className="inline-flex h-11 items-center justify-center rounded-xl border border-gold/40 text-center text-xs font-semibold text-gold-light transition hover:border-gold">
+          NUEVA CITA
+        </Link>
+      </div>
     </>
   );
 }

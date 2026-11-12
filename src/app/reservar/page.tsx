@@ -42,7 +42,7 @@ async function BookingContent({ searchParams }: { searchParams: Promise<{ servic
           <p className="mt-1 text-sm text-muted">Inténtalo de nuevo dentro de unos minutos.</p>
         </div>
       ) : (
-        <BookingForm services={services} minDate={minDate} maxDate={maxDate} initialServiceId={typeof requestedService === "string" ? requestedService : undefined} initialCustomer={customer ? {
+        <BookingForm key={typeof requestedService === "string" ? requestedService : "default"} services={services} minDate={minDate} maxDate={maxDate} initialServiceId={typeof requestedService === "string" ? requestedService : undefined} initialCustomer={customer ? {
           fullName: customer.full_name,
           phone: customer.phone,
           email: customer.email ?? "",
