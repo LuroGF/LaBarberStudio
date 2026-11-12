@@ -3,12 +3,13 @@ import { NotificationActions } from "./notification-actions";
 import { PrepareReminders } from "./prepare-reminders";
 import { WaitlistMatchActions } from "./waitlist-match-actions";
 import { requireAdmin } from "@/lib/auth";
-import { notificationMessage, waitlistOpeningMessage, whatsappUrl } from "@/lib/notifications";
+import { emailUrl, notificationMessage, waitlistOpeningMessage, whatsappUrl } from "@/lib/notifications";
 import { formatMadrid } from "@/lib/schedule";
 import { card } from "@/lib/ui";
 import { whatsappAutomationStatus } from "@/lib/whatsapp-cloud";
+import { emailAutomationStatus } from "@/lib/email-cloud";
 
-type Appointment = { service_name: string; starts_at: string; status: string; customers: { full_name: string; phone: string } | { full_name: string; phone: string }[] | null };
+type Appointment = { service_name: string; starts_at: string; status: string; customers: { full_name: string; phone: string; email: string | null } | { full_name: string; phone: string; email: string | null }[] | null };
 type Event = { id: string; event_type: string; status: string; channel: string; error: string | null; created_at: string; appointments: Appointment | Appointment[] | null };
 type Match = { id: string; waitlist_request_id: string; opening_appointment_id: string; created_at: string };
 type Request = { id: string; customer_id: string; appointment_id: string };
@@ -22,8 +23,9 @@ const eventLabels: Record<string, string> = { request_created: "Nueva cita", app
 export default async function NotificationsPage() {
   const { supabase } = await requireAdmin();
   const automation = whatsappAutomationStatus();
+  const emailAutomation = emailAutomationStatus();
   const [{ data }, { data: settings }, { data: matchesData }] = await Promise.all([
-    supabase.from("notification_events").select("id, event_type, status, channel, error, created_at, appointments(service_name, starts_at, status, customers(full_name, phone))").in("status", ["pending", "failed"]).in("channel", ["whatsapp_manual", "whatsapp_api"]).order("created_at"),
+    supabase.from("notification_events").select("id, event_type, status, channel, error, created_at, appointments(service_name, starts_at, status, customers(full_name, phone, email))").in("status", ["pending", "failed"]).in("channel", ["whatsapp_manual", "whatsapp_api", "email"]).order("created_at"),
     supabase.from("business_settings").select("business_name").eq("id", true).single(),
     supabase.from("waitlist_matches").select("id, waitlist_request_id, opening_appointment_id, created_at").eq("status", "pending").order("created_at"),
   ]);
@@ -33,11 +35,11 @@ export default async function NotificationsPage() {
 
   return (
     <div className="space-y-7">
-      <div><h1 className="text-2xl font-semibold">Avisos</h1><p className="mt-1 text-sm text-muted">Abre WhatsApp, envía el texto preparado y marca el aviso como enviado.</p></div>
-      <div className={`${card} flex items-start justify-between gap-4`}>
+      <div><h1 className="text-2xl font-semibold">Avisos</h1><p className="mt-1 text-sm text-muted">Gestiona los mensajes automáticos y sus alternativas manuales.</p></div>
+      <div className="grid gap-3 lg:grid-cols-2"><div className={`${card} flex items-start justify-between gap-4`}>
         <div><p className="font-semibold">WhatsApp automático</p><p className="mt-1 text-sm text-muted">{automation.configured ? "Meta Cloud API está configurada. Los cambios se procesan al instante y el recordatorio se prepara una vez al día." : "Modo manual activo. Añade las credenciales y plantillas de Meta para automatizarlo."}</p></div>
         <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${automation.configured ? "bg-gold text-black" : "bg-background text-muted"}`}>{automation.configured ? "ACTIVO" : automation.enabled ? "INCOMPLETO" : "MANUAL"}</span>
-      </div>
+      </div><div className={`${card} flex items-start justify-between gap-4`}><div><p className="font-semibold">Correo automático</p><p className="mt-1 text-sm text-muted">{emailAutomation.configured ? "Resend está configurado para confirmaciones, cambios, cancelaciones y recordatorios." : "Configura Resend y un remitente verificado para activar el correo transaccional."}</p></div><span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${emailAutomation.configured ? "bg-gold text-black" : "bg-background text-muted"}`}>{emailAutomation.configured ? "ACTIVO" : emailAutomation.enabled ? "INCOMPLETO" : "MANUAL"}</span></div></div>
 
       <section className="space-y-3">
         <div className="flex items-center gap-2"><BellRing className="size-5 text-gold" /><h2 className="font-semibold">Huecos para la lista de espera</h2></div>
@@ -63,10 +65,13 @@ export default async function NotificationsPage() {
           const customer = Array.isArray(appointment.customers) ? appointment.customers[0] : appointment.customers;
           if (!customer) return null;
           const message = notificationMessage(event.event_type, appointment, customer.full_name, settings?.business_name);
+          const isEmail = event.channel === "email";
+          if (isEmail && !customer.email) return null;
+          const manualUrl = isEmail ? emailUrl(customer.email!, `${eventLabels[event.event_type] ?? "Actualización"} · ${settings?.business_name ?? "LA BARBER STUDIO"}`, message) : whatsappUrl(customer.phone, message);
           return <article key={event.id} className={`${card} space-y-3`}>
-            <div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold">{customer.full_name}</h3><p className="mt-1 text-sm text-muted">{appointment.service_name} · {formatMadrid(appointment.starts_at, "d MMM · HH:mm")}</p>{event.status === "failed" && <p className="mt-2 text-xs font-semibold text-gold-light">El envío automático falló; puedes enviarlo manualmente.</p>}</div><span className="text-xs text-muted">{eventLabels[event.event_type] ?? event.event_type}</span></div>
+            <div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold">{customer.full_name}</h3><p className="mt-1 text-sm text-muted">{appointment.service_name} · {formatMadrid(appointment.starts_at, "d MMM · HH:mm")}</p>{event.status === "failed" && <p className="mt-2 text-xs font-semibold text-gold-light">El envío automático falló; puedes enviarlo manualmente.</p>}</div><span className="text-xs text-muted">{isEmail ? "Correo" : "WhatsApp"} · {eventLabels[event.event_type] ?? event.event_type}</span></div>
             <p className="rounded-xl bg-background p-3 text-sm leading-6">{message}</p>
-            <NotificationActions id={event.id} url={whatsappUrl(customer.phone, message)} />
+            <NotificationActions id={event.id} url={manualUrl} channel={isEmail ? "correo" : "WhatsApp"} />
           </article>;
         })}
       </section>

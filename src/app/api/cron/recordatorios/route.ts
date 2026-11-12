@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queueAppointmentReminders } from "@/lib/reminders";
 import { processPendingWhatsAppNotifications } from "@/lib/automated-notifications";
+import { processPendingEmailNotifications } from "@/lib/automated-emails";
 import { addDaysStr, daysBoundsUtc, todayMadrid } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
 
@@ -15,8 +16,8 @@ export async function GET(request: NextRequest) {
     const tomorrow = addDaysStr(todayMadrid(), 1);
     const { start, end } = daysBoundsUtc(tomorrow);
     const queued = await queueAppointmentReminders(supabase, start, end);
-    const whatsapp = await processPendingWhatsAppNotifications(supabase);
-    return NextResponse.json({ ok: true, queued, whatsapp });
+    const [whatsapp, email] = await Promise.all([processPendingWhatsAppNotifications(supabase), processPendingEmailNotifications(supabase)]);
+    return NextResponse.json({ ok: true, queued, whatsapp, email });
   } catch {
     return NextResponse.json({ error: "No se han podido procesar las notificaciones." }, { status: 500 });
   }

@@ -36,6 +36,22 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+a[href],
+button:not(:disabled),
+select:not(:disabled),
+summary,
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+input[type="date"]:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -49,6 +65,15 @@ body {
 
 .animate-fade-up {
   animation: fade-up 0.35s ease-out both;
+}
+
+@keyframes booking-step {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-booking-step {
+  animation: booking-step 0.24s ease-out both;
 }
 
 .landing-grid {
@@ -124,6 +149,10 @@ body {
 
   .animate-auth-panel-left,
   .animate-auth-panel-right {
+    animation: none;
+  }
+
+  .animate-booking-step {
     animation: none;
   }
 }

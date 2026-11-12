@@ -23,7 +23,7 @@ crear la cita desde el servidor y obtener un enlace privado para consultarla o c
 ## Puesta en marcha
 
 1. Crea un proyecto en [supabase.com](https://supabase.com) (región UE).
-2. En *SQL Editor* ejecuta, en este orden, los archivos de `supabase/migrations/`: `0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `0004_admin_functions.sql`, `0005_rebrand_la_barber_studio.sql`, `0006_customer_portal.sql`, `0007_waitlist.sql`, `0008_whatsapp_consent.sql`, `0009_legal_settings.sql` (o `supabase db push` con la CLI).
+2. En *SQL Editor* ejecuta, en este orden, los archivos de `supabase/migrations/`: `0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `0004_admin_functions.sql`, `0005_rebrand_la_barber_studio.sql`, `0006_customer_portal.sql`, `0007_waitlist.sql`, `0008_whatsapp_consent.sql`, `0009_legal_settings.sql`, `0010_email_notifications.sql` (o `supabase db push` con la CLI).
 3. En *Authentication → Users* crea el usuario administrador. Para el portal de clientes, deja permitido el registro por correo y mantén activada la confirmación de email. Configura las URL de redirección `http://localhost:3000/**` y `https://labarber-studio.vercel.app/**`. El teléfono sigue siendo obligatorio como dato de contacto, pero no se usa para autenticar.
 4. Dale permisos de administrador (SQL Editor):
    ```sql
@@ -84,6 +84,10 @@ La integración usa el endpoint oficial `/{Phone-Number-ID}/messages` de Meta y 
 4. Cuando las plantillas estén aprobadas, activa `WHATSAPP_CLOUD_ENABLED=true` y vuelve a desplegar.
 
 El cliente debe marcar el consentimiento de WhatsApp al reservar. Los clientes sin consentimiento permanecen en la cola manual.
+
+## Correo transaccional (opcional)
+
+Los avisos por correo utilizan la API HTTP de Resend y una cola independiente de WhatsApp. Ejecuta `0010_email_notifications.sql`, verifica un dominio en Resend y añade en Vercel `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_AUTOMATION_START_AT` y, si procede, `EMAIL_REPLY_TO`. Cuando esté listo, activa `EMAIL_NOTIFICATIONS_ENABLED=true` y vuelve a desplegar. El correo del cliente es opcional; las citas sin correo se omiten automáticamente.
 
 ## Pruebas
 

@@ -15,6 +15,10 @@ export function whatsappUrl(phone: string, message: string) {
   return `https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
 }
 
+export function emailUrl(email: string, subject: string, message: string) {
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+}
+
 export function waitlistOpeningMessage(
   opening: { service_name: string; starts_at: string },
   customerName: string,

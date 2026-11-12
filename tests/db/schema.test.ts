@@ -15,6 +15,8 @@ const MIGRATIONS = [
   "0006_customer_portal.sql",
   "0007_waitlist.sql",
   "0008_whatsapp_consent.sql",
+  "0009_legal_settings.sql",
+  "0010_email_notifications.sql",
 ];
 const HASH = (n: number) => String(n).padStart(64, "0");
 
@@ -543,6 +545,35 @@ describe("cola automática de WhatsApp", () => {
       [inserted.rows[0].id],
     );
     expect(status.rows[0].status).toBe("processing");
+  });
+});
+
+describe("cola automática de correo", () => {
+  it("crea y reclama un evento de correo independiente", async () => {
+    const appointment = await db.query<{ id: string }>(`select id from public.appointments limit 1`);
+    await db.query(
+      `update public.customers set email = 'avisos@example.com'
+        where id = (select customer_id from public.appointments where id = $1)`,
+      [appointment.rows[0].id],
+    );
+    const source = await db.query<{ id: string }>(
+      `insert into public.notification_events (appointment_id, event_type, channel, created_at)
+       values ($1, 'reminder', 'whatsapp_manual', now() + interval '2 hours') returning id`,
+      [appointment.rows[0].id],
+    );
+    const email = await db.query<{ id: string }>(
+      `select id from public.notification_events where channel = 'email' and payload ->> 'source_event_id' = $1`,
+      [source.rows[0].id],
+    );
+    expect(email.rows).toHaveLength(1);
+    const first = await db.query<{ id: string }>(
+      `select * from public.claim_email_notification_events(now() + interval '90 minutes', 10)`,
+    );
+    const second = await db.query<{ id: string }>(
+      `select * from public.claim_email_notification_events(now() + interval '90 minutes', 10)`,
+    );
+    expect(first.rows).toContainEqual({ id: email.rows[0].id });
+    expect(second.rows).toEqual([]);
   });
 });
 

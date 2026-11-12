@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { formatMadrid } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
 import { getWhatsAppConfig, sendWhatsAppTemplate } from "@/lib/whatsapp-cloud";
+import { processPendingEmailNotifications } from "@/lib/automated-emails";
 
 type Customer = { full_name: string; phone: string; whatsapp_opt_in_at: string | null };
 type Appointment = {
@@ -136,14 +137,13 @@ export async function processPendingWhatsAppNotifications(
   return result;
 }
 
-/** Procesa la cola tras responder al usuario. En Vercel usa waitUntil y no retrasa la navegación. */
+/** Procesa WhatsApp y correo tras responder. En Vercel usa waitUntil y no retrasa la navegación. */
 export function processWhatsAppAfterResponse() {
   after(async () => {
-    try {
-      await processPendingWhatsAppNotifications(createServiceClient());
-    } catch (error) {
-      console.error("No se ha podido procesar la cola de WhatsApp:", safeError(error));
-    }
+    const supabase = createServiceClient();
+    const [whatsapp, email] = await Promise.allSettled([processPendingWhatsAppNotifications(supabase), processPendingEmailNotifications(supabase)]);
+    if (whatsapp.status === "rejected") console.error("No se ha podido procesar la cola de WhatsApp:", safeError(whatsapp.reason));
+    if (email.status === "rejected") console.error("No se ha podido procesar la cola de correo:", safeError(email.reason));
   });
 }
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
+import { ArrowLeft } from "lucide-react";
 import { BookingForm } from "./booking-form";
 import { Wordmark } from "@/components/wordmark";
 import { getOptionalCustomer } from "@/lib/customer-auth";
@@ -13,8 +14,9 @@ export const metadata = {
   description: "Elige servicio, día y hora para reservar tu cita en LA BARBER STUDIO.",
 };
 
-async function BookingContent() {
+async function BookingContent({ searchParams }: { searchParams: Promise<{ servicio?: string | string[] }> }) {
   await connection();
+  const requestedService = (await searchParams).servicio;
   const supabase = createServiceClient();
   const [{ data: servicesData, error: servicesError }, { data: settings }, customer] = await Promise.all([
     supabase
@@ -40,7 +42,7 @@ async function BookingContent() {
           <p className="mt-1 text-sm text-muted">Inténtalo de nuevo dentro de unos minutos.</p>
         </div>
       ) : (
-        <BookingForm services={services} minDate={minDate} maxDate={maxDate} initialCustomer={customer ? {
+        <BookingForm services={services} minDate={minDate} maxDate={maxDate} initialServiceId={typeof requestedService === "string" ? requestedService : undefined} initialCustomer={customer ? {
           fullName: customer.full_name,
           phone: customer.phone,
           email: customer.email ?? "",
@@ -60,10 +62,11 @@ function BookingFallback() {
   );
 }
 
-export default function BookingPage() {
+export default function BookingPage({ searchParams }: { searchParams: Promise<{ servicio?: string | string[] }> }) {
   return (
-    <main className="mx-auto min-h-dvh max-w-xl px-5 py-8 sm:py-12">
-      <header className="mb-8 text-center">
+    <main className="mx-auto min-h-dvh max-w-2xl px-5 py-6 sm:py-10">
+      <header className="mb-7 text-center">
+        <div className="mb-5 flex justify-start"><Link href="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted transition hover:text-white"><ArrowLeft size={16} /> Volver al inicio</Link></div>
         <Link href="/" aria-label="Volver al inicio">
           <Wordmark className="text-3xl" />
         </Link>
@@ -74,7 +77,7 @@ export default function BookingPage() {
         </Link>
       </header>
       <Suspense fallback={<BookingFallback />}>
-        <BookingContent />
+        <BookingContent searchParams={searchParams} />
       </Suspense>
     </main>
   );
