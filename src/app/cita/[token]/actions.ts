@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { hashManageToken, MANAGE_TOKEN_RE } from "@/lib/booking";
+import { processWhatsAppAfterResponse } from "@/lib/automated-notifications";
 import { createServiceClient } from "@/lib/supabase/admin";
 
 export async function cancelAppointment(token: string): Promise<void> {
@@ -18,6 +19,7 @@ export async function cancelAppointment(token: string): Promise<void> {
     redirect(`/cita/${token}?error=${reason}`);
   }
 
+  processWhatsAppAfterResponse();
   revalidatePath(`/cita/${token}`);
   redirect(`/cita/${token}?cancelled=1`);
 }

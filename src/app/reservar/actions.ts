@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { bookingErrorMessage, createManageToken, hashManageToken } from "@/lib/booking";
+import { processWhatsAppAfterResponse } from "@/lib/automated-notifications";
 import { createServiceClient } from "@/lib/supabase/admin";
 
 const schema = z.object({
@@ -74,6 +75,8 @@ export async function createBooking(
       }
     }
   }
+
+  processWhatsAppAfterResponse();
 
   redirect(`/cita/${token}?created=1`);
 }

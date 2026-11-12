@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
+import { processWhatsAppAfterResponse } from "@/lib/automated-notifications";
 
 const statusSchema = z.enum(["confirmed", "completed", "cancelled", "no_show", "rejected"]);
 
@@ -35,6 +36,7 @@ export async function changeAppointmentStatus(id: string, nextStatus: string): P
         : null;
   if (eventType) {
     await supabase.from("notification_events").insert({ appointment_id: id, event_type: eventType, channel: "whatsapp_manual" });
+    processWhatsAppAfterResponse();
   }
   revalidatePath("/admin");
   revalidatePath("/admin/citas");

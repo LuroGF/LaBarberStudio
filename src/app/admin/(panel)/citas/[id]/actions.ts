@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
+import { processWhatsAppAfterResponse } from "@/lib/automated-notifications";
 import { formatMadrid } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
 import type { ActionState } from "@/lib/types";
@@ -46,7 +47,10 @@ export async function updateAppointment(_previous: ActionState, formData: FormDa
   }
   const { error } = await supabase.from("appointments").update(update).eq("id", parsed.data.id);
   if (error) return { error: error.code === "23P01" ? "Esa hora se solapa con otra cita." : "No se ha podido guardar la cita." };
-  if (moved) await supabase.from("notification_events").insert({ appointment_id: parsed.data.id, event_type: "modified", channel: "whatsapp_manual" });
+  if (moved) {
+    await supabase.from("notification_events").insert({ appointment_id: parsed.data.id, event_type: "modified", channel: "whatsapp_manual" });
+    processWhatsAppAfterResponse();
+  }
   revalidatePath("/admin");
   revalidatePath("/admin/citas");
   revalidatePath(`/admin/citas/${parsed.data.id}`);

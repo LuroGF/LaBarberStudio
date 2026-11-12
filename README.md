@@ -51,7 +51,7 @@ src/app/cita/[token]           Consulta y cancelación con enlace privado
 src/app/mi-cuenta              Portal: acceso, perfil, historial, cancelación y cambio de cita
 src/app/api/disponibilidad     Horas disponibles (la service_role permanece en el servidor)
 src/app/api/**/calendar        Archivos .ics para Apple Calendar y Outlook
-src/app/api/cron/recordatorios Prepara y procesa notificaciones cada 10 min (protegido por CRON_SECRET)
+src/app/api/cron/recordatorios Prepara cada día los recordatorios del día siguiente (protegido por CRON_SECRET)
 src/lib/auth.ts                requireAdmin(): sesión + rol, se repite en cada página y acción
 src/lib/supabase/              Cliente de usuario (RLS) y cliente de servidor (service_role)
 src/proxy.ts                   Refresca la sesión y protege /admin y /mi-cuenta
@@ -69,6 +69,7 @@ Decisiones de diseño que conviene mantener:
 - Una cuenta de cliente solo se vincula a `customers` después de que Supabase confirme la propiedad del teléfono. Las cancelaciones y cambios vuelven a comprobar la propiedad y el plazo dentro de PostgreSQL.
 - Todo se guarda en `timestamptz` y se muestra en Europe/Madrid (con pruebas de los cambios de hora de marzo y octubre).
 - WhatsApp automático es opt-in y tolerante a fallos: sin credenciales sigue el flujo manual; si Meta rechaza un envío, queda visible en el panel para enviarlo a mano.
+- En Vercel Hobby solo se usa un cron diario. Las confirmaciones, cambios y cancelaciones se envían mediante `after()` justo después de la acción; el cron queda reservado para los recordatorios del día siguiente.
 - Next.js 16 con `cacheComponents`: todo `/admin` depende de cookies y va bajo `<Suspense>`. Antes de tocar rutas, lee `node_modules/next/dist/docs/` (esta versión tiene cambios respecto a lo habitual; ver `AGENTS.md`).
 
 ## WhatsApp Cloud API (opcional)

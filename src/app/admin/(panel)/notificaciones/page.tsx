@@ -35,7 +35,7 @@ export default async function NotificationsPage() {
     <div className="space-y-7">
       <div><h1 className="text-2xl font-semibold">Avisos</h1><p className="mt-1 text-sm text-muted">Abre WhatsApp, envía el texto preparado y marca el aviso como enviado.</p></div>
       <div className={`${card} flex items-start justify-between gap-4`}>
-        <div><p className="font-semibold">WhatsApp automático</p><p className="mt-1 text-sm text-muted">{automation.configured ? "Meta Cloud API está configurada. Los envíos se procesan cada 10 minutos." : "Modo manual activo. Añade las credenciales y plantillas de Meta para automatizarlo."}</p></div>
+        <div><p className="font-semibold">WhatsApp automático</p><p className="mt-1 text-sm text-muted">{automation.configured ? "Meta Cloud API está configurada. Los cambios se procesan al instante y el recordatorio se prepara una vez al día." : "Modo manual activo. Añade las credenciales y plantillas de Meta para automatizarlo."}</p></div>
         <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${automation.configured ? "bg-gold text-black" : "bg-background text-muted"}`}>{automation.configured ? "ACTIVO" : automation.enabled ? "INCOMPLETO" : "MANUAL"}</span>
       </div>
 

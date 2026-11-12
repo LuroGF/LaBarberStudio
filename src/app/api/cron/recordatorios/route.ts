@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queueAppointmentReminders } from "@/lib/reminders";
 import { processPendingWhatsAppNotifications } from "@/lib/automated-notifications";
+import { addDaysStr, daysBoundsUtc, todayMadrid } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
 
 export async function GET(request: NextRequest) {
@@ -11,9 +12,8 @@ export async function GET(request: NextRequest) {
   }
   try {
     const supabase = createServiceClient();
-    const now = Date.now();
-    const start = new Date(now + 23.5 * 60 * 60 * 1000);
-    const end = new Date(now + 24.5 * 60 * 60 * 1000);
+    const tomorrow = addDaysStr(todayMadrid(), 1);
+    const { start, end } = daysBoundsUtc(tomorrow);
     const queued = await queueAppointmentReminders(supabase, start, end);
     const whatsapp = await processPendingWhatsAppNotifications(supabase);
     return NextResponse.json({ ok: true, queued, whatsapp });

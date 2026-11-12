@@ -1,6 +1,8 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { after } from "next/server";
 import { formatMadrid } from "@/lib/schedule";
+import { createServiceClient } from "@/lib/supabase/admin";
 import { getWhatsAppConfig, sendWhatsAppTemplate } from "@/lib/whatsapp-cloud";
 
 type Customer = { full_name: string; phone: string; whatsapp_opt_in_at: string | null };
@@ -132,6 +134,17 @@ export async function processPendingWhatsAppNotifications(
     }
   }
   return result;
+}
+
+/** Procesa la cola tras responder al usuario. En Vercel usa waitUntil y no retrasa la navegación. */
+export function processWhatsAppAfterResponse() {
+  after(async () => {
+    try {
+      await processPendingWhatsAppNotifications(createServiceClient());
+    } catch (error) {
+      console.error("No se ha podido procesar la cola de WhatsApp:", safeError(error));
+    }
+  });
 }
 
 function safeError(error: unknown) {

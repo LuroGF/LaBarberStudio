@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
+import { processWhatsAppAfterResponse } from "@/lib/automated-notifications";
 import { bookingErrorMessage, createManageToken, hashManageToken } from "@/lib/booking";
 import { createServiceClient } from "@/lib/supabase/admin";
 
@@ -39,6 +40,7 @@ export async function createAdminBooking(_previous: AdminBookingState, formData:
 
   const { error: confirmError } = await supabase.from("appointments").update({ status: "confirmed", created_by: user.id }).eq("id", appointment.out_id);
   if (confirmError) return { error: "La cita se creó, pero no se pudo confirmar automáticamente. Revísala en la agenda." };
+  processWhatsAppAfterResponse();
   revalidatePath("/admin");
   revalidatePath("/admin/citas");
   revalidatePath("/admin/clientes");

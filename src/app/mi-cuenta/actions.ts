@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { processWhatsAppAfterResponse } from "@/lib/automated-notifications";
 import { requireCustomer } from "@/lib/customer-auth";
 import { normalizePhone } from "@/lib/phone";
 import { createServiceClient } from "@/lib/supabase/admin";
@@ -201,6 +202,7 @@ export async function updateWaitlistPreference(
     const missingMigration = error.code === "42P01" || error.message.includes("waitlist_requests");
     return { error: missingMigration ? "La lista de espera todavía no está activada en la base de datos." : "No se han podido guardar los avisos de huecos." };
   }
+  processWhatsAppAfterResponse();
   revalidatePath("/mi-cuenta");
   return { ok: parsed.data.enabled ? "Te avisaremos si aparece un hueco compatible antes de tu cita." : "Has desactivado los avisos para esta cita." };
 }
@@ -215,6 +217,7 @@ export async function cancelCustomerAppointment(formData: FormData) {
     const reason = error.message.includes("TOO_LATE") ? "late" : "cancel";
     redirect(`/mi-cuenta?error=${reason}`);
   }
+  processWhatsAppAfterResponse();
   revalidatePath("/mi-cuenta");
   redirect("/mi-cuenta?cancelled=1");
 }
