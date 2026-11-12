@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { connection } from "next/server";
 import { ArrowRight, ArrowUpRight, AtSign, CalendarDays, Clock3, MapPin, MessageCircle, Sparkles, UserRound } from "lucide-react";
 import { Wordmark } from "@/components/wordmark";
+import { ConsentMap } from "@/components/consent-map";
+import { CookieSettingsLink } from "@/components/cookie-consent";
 import { WEEKDAYS, formatEuros } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
 import type { BusinessHourRow, Service } from "@/lib/types";
@@ -164,19 +166,7 @@ async function LandingContent() {
                 </dl>
               </div>
             </div>
-            <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-background">
-              <iframe
-                title={`Mapa de ${settings.business_name}`}
-                src={mapEmbedUrl}
-                className="h-[22rem] w-full border-0 saturate-[0.9] contrast-[1.03] sm:h-[30rem]"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                allowFullScreen
-              />
-              <a href={mapsUrl} target="_blank" rel="noreferrer" className="flex items-center justify-between gap-4 border-t border-white/10 px-6 py-4 text-sm font-bold transition hover:bg-gold/10 hover:text-gold-light">
-                Abrir en Google Maps <ArrowUpRight size={18} />
-              </a>
-            </div>
+            <ConsentMap businessName={settings.business_name} address={settings.address} mapsUrl={mapsUrl} embedUrl={mapEmbedUrl} />
           </div>
         </section>
 
@@ -187,7 +177,7 @@ async function LandingContent() {
         </section>
       </main>
 
-      <footer className="border-t border-white/10 px-5 py-8 sm:px-8"><div className="mx-auto flex max-w-7xl flex-col gap-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between"><p>{settings.business_name}</p><div className="flex gap-5"><Link href="/mi-cuenta">Área de clientes</Link><Link href="/admin">Administración</Link></div></div></footer>
+      <footer className="border-t border-white/10 px-5 py-8 sm:px-8"><div className="mx-auto flex max-w-7xl flex-col gap-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between"><p>{settings.business_name}</p><div className="flex flex-wrap gap-x-5 gap-y-3"><Link href="/aviso-legal">Aviso legal</Link><Link href="/privacidad">Privacidad</Link><Link href="/cookies">Cookies</Link><CookieSettingsLink className="text-left" /><Link href="/mi-cuenta">Área de clientes</Link><Link href="/admin">Administración</Link></div></div></footer>
       <div className="fixed inset-x-0 bottom-0 z-50 flex gap-2 border-t border-white/10 bg-background/95 p-3 backdrop-blur md:hidden"><Link href="/mi-cuenta" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full border border-white/15 text-xs font-bold uppercase"><UserRound size={16} /> Mis citas</Link><Link href="/reservar" className="inline-flex h-12 flex-1 items-center justify-center rounded-full bg-gold text-xs font-extrabold uppercase text-black">Reservar</Link></div>
     </>
   );

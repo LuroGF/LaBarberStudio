@@ -7,6 +7,7 @@ import type { ActionState } from "@/lib/types";
 
 type Settings = {
   business_name: string; barber_display_name: string; address: string; phone_whatsapp: string; instagram_handle: string; email: string | null;
+  legal_name: string | null; tax_id: string | null; legal_address: string | null; privacy_email: string | null;
   approval_mode: "auto" | "manual"; pending_hold_minutes: number; min_notice_minutes: number; max_advance_days: number;
   cancellation_notice_hours: number; buffer_minutes: number; slot_step_minutes: number; max_active_per_phone: number;
 };
@@ -25,6 +26,13 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         <label className={label}>Dirección<input className={`${field} mt-1`} name="address" defaultValue={settings.address} /></label>
         <div className="grid gap-3 sm:grid-cols-2"><label className={label}>WhatsApp<input className={`${field} mt-1`} name="phone" required defaultValue={settings.phone_whatsapp} /></label><label className={label}>Instagram<input className={`${field} mt-1`} name="instagram" defaultValue={settings.instagram_handle} /></label></div>
         <label className={label}>Correo público (opcional)<input className={`${field} mt-1`} name="email" type="email" defaultValue={settings.email ?? ""} /></label>
+      </fieldset>
+      <fieldset className="space-y-3"><legend className="mb-3 font-semibold">Información legal y privacidad</legend>
+        <p className="text-sm leading-6 text-muted">Estos datos aparecen en el aviso legal y la política de privacidad.</p>
+        <label className={label}>Nombre o razón social del titular<input className={`${field} mt-1`} name="legalName" defaultValue={settings.legal_name ?? settings.business_name} /></label>
+        <label className={label}>NIF/CIF<input className={`${field} mt-1`} name="taxId" maxLength={32} defaultValue={settings.tax_id ?? ""} /></label>
+        <label className={label}>Domicilio legal<input className={`${field} mt-1`} name="legalAddress" defaultValue={settings.legal_address ?? settings.address} /></label>
+        <label className={label}>Correo para privacidad<input className={`${field} mt-1`} name="privacyEmail" type="email" defaultValue={settings.privacy_email ?? settings.email ?? ""} /></label>
       </fieldset>
       <fieldset className="space-y-3"><legend className="mb-3 font-semibold">Reservas</legend>
         <label className={label}>Confirmación<select className={`${field} mt-1`} name="approvalMode" defaultValue={settings.approval_mode}><option value="auto">Automática</option><option value="manual">Revisión manual</option></select></label>

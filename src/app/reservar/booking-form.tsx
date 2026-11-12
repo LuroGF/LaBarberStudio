@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { CalendarDays, Check, Clock, Scissors } from "lucide-react";
 import { createBooking, type BookingActionState } from "./actions";
 import { field } from "@/lib/ui";
@@ -206,7 +207,7 @@ export function BookingForm({ services, minDate, maxDate, initialCustomer }: Pro
             </label>
             <label className="flex items-start gap-3 text-sm text-muted">
               <input name="consent" type="checkbox" required className="mt-1 size-4 accent-white" />
-              <span>Acepto que se usen estos datos exclusivamente para gestionar mi cita.</span>
+              <span>Acepto que se usen estos datos para gestionar mi cita conforme a la <Link href="/privacidad" className="text-foreground underline underline-offset-4">política de privacidad</Link>.</span>
             </label>
             <label className="flex items-start gap-3 text-sm text-muted">
               <input name="whatsappConsent" type="checkbox" className="mt-1 size-4 accent-[var(--gold)]" />

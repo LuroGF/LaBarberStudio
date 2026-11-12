@@ -15,7 +15,7 @@ Producción: [https://labarber-studio.vercel.app](https://labarber-studio.vercel
 | 4 | Panel: resumen, calendario día/semana/mes, gestión de citas | Hecha (pendiente de probar con citas reales) |
 | 5 | Clientes, ajustes, notificaciones manuales y automatización opcional con WhatsApp Cloud API, PWA | Hecha |
 | 6 | Portal de clientes (correo + contraseña), perfil, citas y calendario | Hecha |
-| 7 | Textos legales, copias de seguridad, despliegue | Pendiente |
+| 7 | Textos legales, copias de seguridad, despliegue | En curso |
 
 El botón de la portada abre `/reservar`: permite elegir un servicio activo, consultar huecos reales,
 crear la cita desde el servidor y obtener un enlace privado para consultarla o cancelarla.
@@ -23,7 +23,7 @@ crear la cita desde el servidor y obtener un enlace privado para consultarla o c
 ## Puesta en marcha
 
 1. Crea un proyecto en [supabase.com](https://supabase.com) (región UE).
-2. En *SQL Editor* ejecuta, en este orden, los archivos de `supabase/migrations/`: `0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `0004_admin_functions.sql`, `0005_rebrand_la_barber_studio.sql`, `0006_customer_portal.sql`, `0007_waitlist.sql`, `0008_whatsapp_consent.sql` (o `supabase db push` con la CLI).
+2. En *SQL Editor* ejecuta, en este orden, los archivos de `supabase/migrations/`: `0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `0004_admin_functions.sql`, `0005_rebrand_la_barber_studio.sql`, `0006_customer_portal.sql`, `0007_waitlist.sql`, `0008_whatsapp_consent.sql`, `0009_legal_settings.sql` (o `supabase db push` con la CLI).
 3. En *Authentication → Users* crea el usuario administrador. Para el portal de clientes, deja permitido el registro por correo y mantén activada la confirmación de email. Configura las URL de redirección `http://localhost:3000/**` y `https://labarber-studio.vercel.app/**`. El teléfono sigue siendo obligatorio como dato de contacto, pero no se usa para autenticar.
 4. Dale permisos de administrador (SQL Editor):
    ```sql

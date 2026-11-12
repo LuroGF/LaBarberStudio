@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/montserrat";
 import "./globals.css";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
+import { CookieConsent } from "@/components/cookie-consent";
 
 export const metadata: Metadata = {
   title: "LA BARBER STUDIO | Barbería en Fuenlabrada",
@@ -19,7 +20,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="min-h-dvh antialiased">{children}<ServiceWorkerRegistration /></body>
+      <body className="min-h-dvh antialiased">{children}<ServiceWorkerRegistration /><CookieConsent /></body>
     </html>
   );
 }

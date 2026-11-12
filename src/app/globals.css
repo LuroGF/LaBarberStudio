@@ -68,6 +68,33 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 }
 
+.legal-copy h2 {
+  color: var(--foreground);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.legal-copy p,
+.legal-copy ul {
+  margin-top: 0.75rem;
+}
+
+.legal-copy ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.legal-copy li + li {
+  margin-top: 0.5rem;
+}
+
+.legal-copy a {
+  color: var(--gold-light);
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+
 @keyframes auth-panel-left {
   from { opacity: 0; transform: translateX(-12px); }
   to { opacity: 1; transform: translateX(0); }
