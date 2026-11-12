@@ -23,7 +23,7 @@ export async function prepareReminders(): Promise<ReminderState> {
 export async function setNotificationStatus(id: string, status: "sent" | "skipped") {
   if (!z.string().uuid().safeParse(id).success || !["sent", "skipped"].includes(status)) return;
   const { supabase } = await requireAdmin();
-  await supabase.from("notification_events").update({ status, sent_at: status === "sent" ? new Date().toISOString() : null }).eq("id", id).eq("status", "pending");
+  await supabase.from("notification_events").update({ status, sent_at: status === "sent" ? new Date().toISOString() : null, error: null }).eq("id", id).in("status", ["pending", "failed"]);
   revalidatePath("/admin/notificaciones");
   revalidatePath("/admin");
 }

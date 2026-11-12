@@ -208,6 +208,10 @@ export function BookingForm({ services, minDate, maxDate, initialCustomer }: Pro
               <input name="consent" type="checkbox" required className="mt-1 size-4 accent-white" />
               <span>Acepto que se usen estos datos exclusivamente para gestionar mi cita.</span>
             </label>
+            <label className="flex items-start gap-3 text-sm text-muted">
+              <input name="whatsappConsent" type="checkbox" className="mt-1 size-4 accent-[var(--gold)]" />
+              <span>Quiero recibir por WhatsApp confirmaciones, cambios y recordatorios relacionados con mis citas. Puedo retirar este consentimiento contactando con la barbería.</span>
+            </label>
           </div>
         </fieldset>
       )}

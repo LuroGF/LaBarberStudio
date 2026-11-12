@@ -14,6 +14,7 @@ const MIGRATIONS = [
   "0004_admin_functions.sql",
   "0006_customer_portal.sql",
   "0007_waitlist.sql",
+  "0008_whatsapp_consent.sql",
 ];
 const HASH = (n: number) => String(n).padStart(64, "0");
 
@@ -518,6 +519,30 @@ describe("lista de espera", () => {
       [request.rows[0].id],
     );
     expect(active.rows[0].is_active).toBe(false);
+  });
+});
+
+describe("cola automática de WhatsApp", () => {
+  it("reclama cada evento una sola vez aunque coincidan dos procesos", async () => {
+    const appointment = await db.query<{ id: string }>(`select id from public.appointments limit 1`);
+    const inserted = await db.query<{ id: string }>(
+      `insert into public.notification_events (appointment_id, event_type, created_at)
+       values ($1, 'reminder', now() + interval '1 hour') returning id`,
+      [appointment.rows[0].id],
+    );
+    const first = await db.query<{ id: string }>(
+      `select * from public.claim_whatsapp_notification_events(now() + interval '30 minutes', 10)`,
+    );
+    const second = await db.query<{ id: string }>(
+      `select * from public.claim_whatsapp_notification_events(now() + interval '30 minutes', 10)`,
+    );
+    expect(first.rows).toContainEqual({ id: inserted.rows[0].id });
+    expect(second.rows).toEqual([]);
+    const status = await db.query<{ status: string }>(
+      `select status from public.notification_events where id = $1`,
+      [inserted.rows[0].id],
+    );
+    expect(status.rows[0].status).toBe("processing");
   });
 });
 

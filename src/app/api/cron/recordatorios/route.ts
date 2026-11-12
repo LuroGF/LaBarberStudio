@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { queueAppointmentReminders } from "@/lib/reminders";
-import { addDaysStr, daysBoundsUtc, todayMadrid } from "@/lib/schedule";
+import { processPendingWhatsAppNotifications } from "@/lib/automated-notifications";
 import { createServiceClient } from "@/lib/supabase/admin";
 
 export async function GET(request: NextRequest) {
@@ -10,11 +10,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
   try {
-    const tomorrow = addDaysStr(todayMadrid(), 1);
-    const { start, end } = daysBoundsUtc(tomorrow);
-    const count = await queueAppointmentReminders(createServiceClient(), start, end);
-    return NextResponse.json({ ok: true, queued: count });
+    const supabase = createServiceClient();
+    const now = Date.now();
+    const start = new Date(now + 23.5 * 60 * 60 * 1000);
+    const end = new Date(now + 24.5 * 60 * 60 * 1000);
+    const queued = await queueAppointmentReminders(supabase, start, end);
+    const whatsapp = await processPendingWhatsAppNotifications(supabase);
+    return NextResponse.json({ ok: true, queued, whatsapp });
   } catch {
-    return NextResponse.json({ error: "No se han podido preparar los recordatorios." }, { status: 500 });
+    return NextResponse.json({ error: "No se han podido procesar las notificaciones." }, { status: 500 });
   }
 }
