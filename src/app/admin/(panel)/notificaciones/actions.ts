@@ -27,3 +27,13 @@ export async function setNotificationStatus(id: string, status: "sent" | "skippe
   revalidatePath("/admin/notificaciones");
   revalidatePath("/admin");
 }
+
+export async function setWaitlistMatchStatus(id: string, status: "sent" | "skipped") {
+  if (!z.string().uuid().safeParse(id).success || !["sent", "skipped"].includes(status)) return;
+  const { supabase } = await requireAdmin();
+  await supabase.from("waitlist_matches").update({
+    status,
+    sent_at: status === "sent" ? new Date().toISOString() : null,
+  }).eq("id", id).eq("status", "pending");
+  revalidatePath("/admin/notificaciones");
+}

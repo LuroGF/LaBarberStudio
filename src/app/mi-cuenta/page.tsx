@@ -9,6 +9,7 @@ import { canManageCustomerAppointment, isFutureAppointment, splitCustomerAppoint
 import { requestTimeMs } from "@/lib/request-time";
 import { formatEuros, formatMadrid } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
+import { WaitlistForm } from "./waitlist-form";
 
 export const instant = false;
 
@@ -20,6 +21,14 @@ type Appointment = {
   duration_minutes: number;
   starts_at: string;
   ends_at: string;
+};
+
+type WaitlistPreference = {
+  appointment_id: string;
+  is_active: boolean;
+  weekdays: number[];
+  start_time: string;
+  end_time: string;
 };
 
 const statusText: Record<Appointment["status"], string> = {
@@ -40,19 +49,23 @@ export default async function CustomerAccountPage({
   await connection();
   const [{ customer }, query] = await Promise.all([requireCustomer(), searchParams]);
   const admin = createServiceClient();
-  const [{ data }, { data: settings }] = await Promise.all([
+  const [{ data }, { data: settings }, { data: waitlistData }] = await Promise.all([
     admin
       .from("appointments")
       .select("id, status, service_name, price_cents, duration_minutes, starts_at, ends_at")
       .eq("customer_id", customer.id)
       .order("starts_at", { ascending: false }),
     admin.from("business_settings").select("address, cancellation_notice_hours").eq("id", true).single(),
+    admin.from("waitlist_requests").select("appointment_id, is_active, weekdays, start_time, end_time").eq("customer_id", customer.id),
   ]);
   const appointments = (data ?? []) as Appointment[];
   const nowMs = requestTimeMs();
   const { upcoming, history } = splitCustomerAppointments(appointments, nowMs);
   const address = settings?.address ?? "LA BARBER STUDIO";
   const noticeHours = settings?.cancellation_notice_hours ?? 2;
+  const waitlistByAppointment = new Map(
+    ((waitlistData ?? []) as WaitlistPreference[]).map((preference) => [preference.appointment_id, preference]),
+  );
 
   return (
     <main className="mx-auto min-h-dvh max-w-2xl px-4 pb-12 pt-6 sm:px-6 sm:pt-10">
@@ -100,6 +113,7 @@ export default async function CustomerAccountPage({
                 canManage={canManageCustomerAppointment(appointment, nowMs, noticeHours)}
                 showCalendar={isFutureAppointment(appointment, nowMs)}
                 managementClosed={!canManageCustomerAppointment(appointment, nowMs, noticeHours)}
+                waitlistPreference={waitlistByAppointment.get(appointment.id) ?? null}
               />
             ))}
           </div>
@@ -142,6 +156,7 @@ function AppointmentCard({
   showCalendar = false,
   managementClosed = false,
   archivedByTime = false,
+  waitlistPreference = null,
 }: {
   appointment: Appointment;
   address: string;
@@ -149,6 +164,7 @@ function AppointmentCard({
   showCalendar?: boolean;
   managementClosed?: boolean;
   archivedByTime?: boolean;
+  waitlistPreference?: WaitlistPreference | null;
 }) {
   const googleUrl = googleCalendarUrl({
     id: appointment.id,
@@ -180,6 +196,9 @@ function AppointmentCard({
             APPLE / OUTLOOK
           </a>
         </div>
+      )}
+      {appointment.status === "confirmed" && showCalendar && (
+        <WaitlistForm appointmentId={appointment.id} preference={waitlistPreference} />
       )}
       {canManage && (
         <div className="mt-4 grid grid-cols-2 gap-2">

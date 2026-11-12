@@ -13,6 +13,7 @@ const MIGRATIONS = [
   "0003_rls.sql",
   "0004_admin_functions.sql",
   "0006_customer_portal.sql",
+  "0007_waitlist.sql",
 ];
 const HASH = (n: number) => String(n).padStart(64, "0");
 
@@ -477,6 +478,46 @@ describe("portal de clientes", () => {
       [appointmentId],
     );
     expect(changed.rows[0].starts).toBe(target);
+  });
+});
+
+describe("lista de espera", () => {
+  it("crea una coincidencia al cancelarse un hueco anterior del mismo servicio", async () => {
+    const openingDate = await madridDate(80);
+    const targetDate = await madridDate(81);
+    const [openingSlot] = await slots(openingDate);
+    const [targetSlot] = await slots(targetDate);
+    const target = await book(`${targetSlot}:00Z`, "612000200", 820, "Cliente Espera");
+    const targetId = target.rows[0].out_id;
+    const customer = await db.query<{ id: string }>(
+      `select customer_id as id from public.appointments where id = $1`,
+      [targetId],
+    );
+    await db.query(
+      `insert into public.waitlist_requests (appointment_id, customer_id)
+       values ($1, $2)`,
+      [targetId, customer.rows[0].id],
+    );
+    const opening = await book(`${openingSlot}:00Z`, "612000201", 821, "Cliente Cancela");
+    const openingId = opening.rows[0].out_id;
+    await db.query(`update public.appointments set status = 'cancelled' where id = $1`, [openingId]);
+
+    const matches = await db.query<{ opening_appointment_id: string }>(
+      `select opening_appointment_id from public.waitlist_matches`,
+    );
+    expect(matches.rows).toContainEqual({ opening_appointment_id: openingId });
+  });
+
+  it("desactiva la solicitud cuando la cita objetivo deja de estar activa", async () => {
+    const request = await db.query<{ id: string; appointment_id: string }>(
+      `select id, appointment_id from public.waitlist_requests where is_active limit 1`,
+    );
+    await db.query(`update public.appointments set status = 'cancelled' where id = $1`, [request.rows[0].appointment_id]);
+    const active = await db.query<{ is_active: boolean }>(
+      `select is_active from public.waitlist_requests where id = $1`,
+      [request.rows[0].id],
+    );
+    expect(active.rows[0].is_active).toBe(false);
   });
 });
 

@@ -153,6 +153,58 @@ export async function updateCustomerProfile(
   return { ok: "Tus datos se han actualizado." };
 }
 
+const waitlistSchema = z.object({
+  appointmentId: z.string().uuid(),
+  enabled: z.boolean(),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  weekdays: z.array(z.coerce.number().int().min(1).max(7)).min(1).max(7),
+}).refine((data) => data.endTime > data.startTime, {
+  message: "La hora final debe ser posterior a la inicial.",
+  path: ["endTime"],
+});
+
+export async function updateWaitlistPreference(
+  _previous: CustomerActionState,
+  formData: FormData,
+): Promise<CustomerActionState> {
+  const parsed = waitlistSchema.safeParse({
+    appointmentId: value(formData, "appointmentId"),
+    enabled: value(formData, "enabled") === "on",
+    startTime: value(formData, "startTime"),
+    endTime: value(formData, "endTime"),
+    weekdays: formData.getAll("weekdays"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  const { customer } = await requireCustomer();
+  const admin = createServiceClient();
+  const { data: appointment, error: appointmentError } = await admin
+    .from("appointments")
+    .select("id, status, starts_at")
+    .eq("id", parsed.data.appointmentId)
+    .eq("customer_id", customer.id)
+    .maybeSingle();
+  if (appointmentError || !appointment || appointment.status !== "confirmed" || new Date(appointment.starts_at) <= new Date()) {
+    return { error: "Esta cita ya no admite avisos de huecos." };
+  }
+
+  const { error } = await admin.from("waitlist_requests").upsert({
+    appointment_id: parsed.data.appointmentId,
+    customer_id: customer.id,
+    is_active: parsed.data.enabled,
+    weekdays: [...new Set(parsed.data.weekdays)].sort(),
+    start_time: parsed.data.startTime,
+    end_time: parsed.data.endTime,
+  }, { onConflict: "appointment_id" });
+  if (error) {
+    const missingMigration = error.code === "42P01" || error.message.includes("waitlist_requests");
+    return { error: missingMigration ? "La lista de espera todavía no está activada en la base de datos." : "No se han podido guardar los avisos de huecos." };
+  }
+  revalidatePath("/mi-cuenta");
+  return { ok: parsed.data.enabled ? "Te avisaremos si aparece un hueco compatible antes de tu cita." : "Has desactivado los avisos para esta cita." };
+}
+
 export async function cancelCustomerAppointment(formData: FormData) {
   await requireCustomer();
   const appointmentId = value(formData, "appointmentId");
