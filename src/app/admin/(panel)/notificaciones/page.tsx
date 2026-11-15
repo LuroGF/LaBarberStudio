@@ -15,7 +15,7 @@ type Match = { id: string; waitlist_request_id: string; opening_appointment_id: 
 type Request = { id: string; customer_id: string; appointment_id: string };
 type Opening = { id: string; barber_id: string; service_id: string | null; service_name: string; starts_at: string; status: string };
 type Target = { id: string; service_name: string; starts_at: string; status: string };
-type Customer = { id: string; full_name: string; phone: string };
+type Customer = { id: string; full_name: string; phone: string; email: string | null };
 
 export const metadata = { title: "Avisos | LA BARBER STUDIO" };
 const eventLabels: Record<string, string> = { request_created: "Nueva cita", approved: "Confirmación", rejected: "Rechazo", modified: "Cambio", cancelled: "Cancelación", reminder: "Recordatorio" };
@@ -51,7 +51,7 @@ export default async function NotificationsPage() {
               <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${available ? "bg-gold text-black" : "bg-background text-muted"}`}>{available ? "Disponible" : "Ya ocupado"}</span>
             </div>
             <p className="rounded-xl bg-background p-3 text-sm leading-6">{message}</p>
-            <WaitlistMatchActions id={match.id} url={whatsappUrl(customer.phone, message)} available={available} />
+            <WaitlistMatchActions id={match.id} url={whatsappUrl(customer.phone, message)} available={available} emailAvailable={Boolean(customer.email)} />
           </article>;
         })}
       </section>
@@ -90,7 +90,7 @@ async function loadWaitlistItems(supabase: Awaited<ReturnType<typeof requireAdmi
   const requests = (requestsData ?? []) as Request[];
   const openings = (openingsData ?? []) as Opening[];
   const [{ data: customersData }, { data: targetsData }] = await Promise.all([
-    requests.length ? supabase.from("customers").select("id, full_name, phone").in("id", [...new Set(requests.map((request) => request.customer_id))]) : Promise.resolve({ data: [] as Customer[] }),
+    requests.length ? supabase.from("customers").select("id, full_name, phone, email").in("id", [...new Set(requests.map((request) => request.customer_id))]) : Promise.resolve({ data: [] as Customer[] }),
     requests.length ? supabase.from("appointments").select("id, service_name, starts_at, status").in("id", [...new Set(requests.map((request) => request.appointment_id))]) : Promise.resolve({ data: [] as Target[] }),
   ]);
   const customers = (customersData ?? []) as Customer[];
