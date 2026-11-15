@@ -87,7 +87,7 @@ El cliente debe marcar el consentimiento de WhatsApp al reservar. Los clientes s
 
 ## Correo transaccional (opcional)
 
-Los avisos por correo utilizan la API HTTP de Resend y una cola independiente de WhatsApp. Ejecuta `0010_email_notifications.sql`, verifica un dominio en Resend y añade en Vercel `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_AUTOMATION_START_AT` y, si procede, `EMAIL_REPLY_TO`. Cuando esté listo, activa `EMAIL_NOTIFICATIONS_ENABLED=true` y vuelve a desplegar. El correo del cliente es opcional; las citas sin correo se omiten automáticamente.
+Los avisos por correo utilizan la API HTTP de Brevo y una cola independiente de WhatsApp. Ejecuta `0010_email_notifications.sql`, verifica un remitente en Brevo y añade en Vercel `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS`, `EMAIL_AUTOMATION_START_AT` y, si procede, `EMAIL_REPLY_TO`. Cuando esté listo, activa `EMAIL_NOTIFICATIONS_ENABLED=true` y vuelve a desplegar. El correo del cliente es opcional; las citas sin correo se omiten automáticamente.
 
 ## Pruebas
 
