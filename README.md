@@ -89,6 +89,10 @@ El cliente debe marcar el consentimiento de WhatsApp al reservar. Los clientes s
 
 Los avisos por correo utilizan la API HTTP de Brevo y una cola independiente de WhatsApp. Ejecuta `0010_email_notifications.sql`, verifica un remitente en Brevo y añade en Vercel `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS`, `EMAIL_AUTOMATION_START_AT` y, si procede, `EMAIL_REPLY_TO`. Cuando esté listo, activa `EMAIL_NOTIFICATIONS_ENABLED=true` y vuelve a desplegar. El correo del cliente es opcional; las citas sin correo se omiten automáticamente.
 
+## Recordatorios cercanos a 24 horas
+
+El workflow `.github/workflows/appointment-reminders.yml` llama cada 15 minutos al endpoint protegido de producción. Añade en GitHub Actions un secreto llamado `CRON_SECRET` con exactamente el mismo valor que `CRON_SECRET` en Vercel. El proceso busca citas entre 23 horas y 24 horas y 15 minutos desde cada ejecución; la restricción única de la cola evita recordatorios duplicados. El cron diario de Vercel se mantiene como respaldo gratuito.
+
 ## Pruebas
 
 ```bash

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addDaysStr,
+  appointmentReminderWindow,
   centsToInput,
   daysBoundsUtc,
   isDate,
@@ -57,6 +58,15 @@ describe("hora de Madrid", () => {
     expect(isDate("2027-02-29")).toBe(false);
     expect(isDate("2028-02-29")).toBe(true);
     expect(isDate("2027-13-01")).toBe(false);
+  });
+});
+
+describe("recordatorios", () => {
+  it("busca citas entre 23 h y 24 h 15 min desde la ejecución", () => {
+    const now = new Date("2026-11-16T10:00:00.000Z");
+    const { start, end } = appointmentReminderWindow(now);
+    expect(start.toISOString()).toBe("2026-11-17T09:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-11-17T10:15:00.000Z");
   });
 });
 

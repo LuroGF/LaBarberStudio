@@ -72,6 +72,14 @@ export function todayMadrid(now: Date = new Date()): string {
   return formatInTimeZone(now, TZ, "yyyy-MM-dd");
 }
 
+/** Ventana tolerante para un proceso que se ejecuta cada 15 minutos. */
+export function appointmentReminderWindow(now: Date = new Date()): { start: Date; end: Date } {
+  return {
+    start: new Date(now.getTime() + 23 * 60 * 60 * 1000),
+    end: new Date(now.getTime() + (24 * 60 + 15) * 60 * 1000),
+  };
+}
+
 /** Comprueba tramos de un día: hora válida, fin posterior a inicio y sin solapes. */
 export function validateRanges(ranges: Range[]): string | null {
   for (const r of ranges) {
