@@ -38,6 +38,18 @@ export async function changeAppointmentStatus(id: string, nextStatus: string): P
     await supabase.from("notification_events").insert({ appointment_id: id, event_type: eventType, channel: "whatsapp_manual" });
     processWhatsAppAfterResponse();
   }
+  if (parsedStatus.data === "completed") {
+    const { data: settings } = await supabase.from("business_settings").select("*").eq("id", true).single();
+    if (settings?.google_review_url) {
+      await supabase.from("notification_events").insert({
+        appointment_id: id,
+        event_type: "review_request",
+        channel: "email",
+        payload: { review_url: settings.google_review_url },
+      });
+      processWhatsAppAfterResponse();
+    }
+  }
   revalidatePath("/admin");
   revalidatePath("/admin/citas");
   revalidatePath("/admin/notificaciones");

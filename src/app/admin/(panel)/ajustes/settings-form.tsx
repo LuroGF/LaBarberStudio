@@ -8,6 +8,7 @@ import type { ActionState } from "@/lib/types";
 type Settings = {
   business_name: string; barber_display_name: string; address: string; phone_whatsapp: string; instagram_handle: string; email: string | null;
   legal_name: string | null; tax_id: string | null; legal_address: string | null; privacy_email: string | null;
+  google_review_url?: string | null;
   approval_mode: "auto" | "manual"; pending_hold_minutes: number; min_notice_minutes: number; max_advance_days: number;
   cancellation_notice_hours: number; buffer_minutes: number; slot_step_minutes: number; max_active_per_phone: number;
 };
@@ -33,6 +34,10 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         <label className={label}>NIF/CIF<input className={`${field} mt-1`} name="taxId" maxLength={32} defaultValue={settings.tax_id ?? ""} /></label>
         <label className={label}>Domicilio legal<input className={`${field} mt-1`} name="legalAddress" defaultValue={settings.legal_address ?? settings.address} /></label>
         <label className={label}>Correo para privacidad<input className={`${field} mt-1`} name="privacyEmail" type="email" defaultValue={settings.privacy_email ?? settings.email ?? ""} /></label>
+      </fieldset>
+      <fieldset className="space-y-3"><legend className="mb-3 font-semibold">Reseñas</legend>
+        <p className="text-sm leading-6 text-muted">Al completar una cita se enviará un único correo al cliente. Déjalo vacío para desactivar esta función.</p>
+        <label className={label}>Enlace de reseñas de Google<input className={`${field} mt-1`} name="googleReviewUrl" type="url" placeholder="https://g.page/r/.../review" defaultValue={settings.google_review_url ?? ""} /></label>
       </fieldset>
       <fieldset className="space-y-3"><legend className="mb-3 font-semibold">Reservas</legend>
         <label className={label}>Confirmación<select className={`${field} mt-1`} name="approvalMode" defaultValue={settings.approval_mode}><option value="auto">Automática</option><option value="manual">Revisión manual</option></select></label>

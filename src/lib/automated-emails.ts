@@ -2,10 +2,11 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { formatMadrid } from "@/lib/schedule";
 import { getEmailConfig, sendTransactionalEmail } from "@/lib/email-cloud";
+import { renderReviewRequestEmail } from "@/lib/review-email";
 
 type Customer = { full_name: string; email: string | null };
 type Appointment = { service_name: string; starts_at: string; status: string; customers: Customer | Customer[] | null };
-type Event = { id: string; event_type: string; appointments: Appointment | Appointment[] | null };
+type Event = { id: string; event_type: string; payload: Record<string, unknown> | null; appointments: Appointment | Appointment[] | null };
 
 const subjects: Record<string, string> = {
   request_created: "Hemos recibido tu cita",
@@ -14,6 +15,7 @@ const subjects: Record<string, string> = {
   modified: "Tu cita ha cambiado",
   cancelled: "Tu cita ha sido cancelada",
   reminder: "Recordatorio de tu cita",
+  review_request: "¿Qué te ha parecido tu visita?",
 };
 
 const messages: Record<string, string> = {
@@ -35,8 +37,8 @@ export async function processPendingEmailNotifications(supabase: SupabaseClient,
   if (!ids.length) return result;
 
   const [{ data, error }, { data: settings }] = await Promise.all([
-    supabase.from("notification_events").select("id, event_type, appointments(service_name, starts_at, status, customers(full_name, email))").in("id", ids),
-    supabase.from("business_settings").select("business_name").eq("id", true).single(),
+    supabase.from("notification_events").select("id, event_type, payload, appointments(service_name, starts_at, status, customers(full_name, email))").in("id", ids),
+    supabase.from("business_settings").select("*").eq("id", true).single(),
   ]);
   if (error) throw error;
   const businessName = settings?.business_name ?? "LA BARBER STUDIO";
@@ -51,11 +53,19 @@ export async function processPendingEmailNotifications(supabase: SupabaseClient,
       continue;
     }
     try {
+      const reviewUrl = typeof event.payload?.review_url === "string" ? event.payload.review_url : settings?.google_review_url;
+      if (event.event_type === "review_request" && !reviewUrl) {
+        await supabase.from("notification_events").update({ status: "skipped", processing_started_at: null, error: "REVIEW_URL_MISSING" }).eq("id", event.id).eq("status", "processing");
+        result.skipped += 1;
+        continue;
+      }
       const emailId = await sendTransactionalEmail(config, {
         eventId: event.id,
         to: customer.email,
         subject: `${subjects[event.event_type] ?? "Actualización de tu cita"} · ${businessName}`,
-        html: renderAppointmentEmail({ businessName, customerName: customer.full_name, message: messages[event.event_type] ?? "Tenemos una actualización sobre tu cita.", service: appointment.service_name, startsAt: appointment.starts_at, siteUrl: config.siteUrl }),
+        html: event.event_type === "review_request"
+          ? renderReviewRequestEmail({ businessName, customerName: customer.full_name, service: appointment.service_name, startsAt: appointment.starts_at, reviewUrl: reviewUrl! })
+          : renderAppointmentEmail({ businessName, customerName: customer.full_name, message: messages[event.event_type] ?? "Tenemos una actualización sobre tu cita.", service: appointment.service_name, startsAt: appointment.starts_at, siteUrl: config.siteUrl }),
       });
       await supabase.from("notification_events").update({ status: "sent", sent_at: new Date().toISOString(), processing_started_at: null, error: null, payload: { email_id: emailId } }).eq("id", event.id).eq("status", "processing");
       result.sent += 1;

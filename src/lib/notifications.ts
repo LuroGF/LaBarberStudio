@@ -8,6 +8,7 @@ export function notificationMessage(eventType: string, appointment: { service_na
   if (eventType === "cancelled") return `${greeting} tu cita de ${appointment.service_name} para el ${when} ha sido cancelada. — ${businessName}`;
   if (eventType === "modified") return `${greeting} tu cita ha sido actualizada: ${appointment.service_name}, ${when}. — ${businessName}`;
   if (eventType === "reminder") return `${greeting} te recordamos tu cita de ${appointment.service_name} el ${when}. — ${businessName}`;
+  if (eventType === "review_request") return `${greeting} gracias por tu visita. Nos ayudaría mucho conocer tu opinión sobre el servicio. — ${businessName}`;
   return `${greeting} hemos recibido tu cita de ${appointment.service_name} para el ${when}. Estado: ${appointment.status === "confirmed" ? "confirmada" : "pendiente"}. — ${businessName}`;
 }
 

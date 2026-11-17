@@ -10,7 +10,7 @@ import { whatsappAutomationStatus } from "@/lib/whatsapp-cloud";
 import { emailAutomationStatus } from "@/lib/email-cloud";
 
 type Appointment = { service_name: string; starts_at: string; status: string; customers: { full_name: string; phone: string; email: string | null } | { full_name: string; phone: string; email: string | null }[] | null };
-type Event = { id: string; event_type: string; status: string; channel: string; error: string | null; created_at: string; appointments: Appointment | Appointment[] | null };
+type Event = { id: string; event_type: string; status: string; channel: string; error: string | null; payload: Record<string, unknown> | null; created_at: string; appointments: Appointment | Appointment[] | null };
 type Match = { id: string; waitlist_request_id: string; opening_appointment_id: string; created_at: string };
 type Request = { id: string; customer_id: string; appointment_id: string };
 type Opening = { id: string; barber_id: string; service_id: string | null; service_name: string; starts_at: string; status: string };
@@ -18,14 +18,14 @@ type Target = { id: string; service_name: string; starts_at: string; status: str
 type Customer = { id: string; full_name: string; phone: string; email: string | null };
 
 export const metadata = { title: "Avisos | LA BARBER STUDIO" };
-const eventLabels: Record<string, string> = { request_created: "Nueva cita", approved: "Confirmación", rejected: "Rechazo", modified: "Cambio", cancelled: "Cancelación", reminder: "Recordatorio" };
+const eventLabels: Record<string, string> = { request_created: "Nueva cita", approved: "Confirmación", rejected: "Rechazo", modified: "Cambio", cancelled: "Cancelación", reminder: "Recordatorio", review_request: "Solicitud de reseña" };
 
 export default async function NotificationsPage() {
   const { supabase } = await requireAdmin();
   const automation = whatsappAutomationStatus();
   const emailAutomation = emailAutomationStatus();
   const [{ data }, { data: settings }, { data: matchesData }] = await Promise.all([
-    supabase.from("notification_events").select("id, event_type, status, channel, error, created_at, appointments(service_name, starts_at, status, customers(full_name, phone, email))").in("status", ["pending", "failed"]).in("channel", ["whatsapp_manual", "whatsapp_api", "email"]).order("created_at"),
+    supabase.from("notification_events").select("id, event_type, status, channel, error, payload, created_at, appointments(service_name, starts_at, status, customers(full_name, phone, email))").in("status", ["pending", "failed"]).in("channel", ["whatsapp_manual", "whatsapp_api", "email"]).order("created_at"),
     supabase.from("business_settings").select("business_name").eq("id", true).single(),
     supabase.from("waitlist_matches").select("id, waitlist_request_id, opening_appointment_id, created_at").eq("status", "pending").order("created_at"),
   ]);
@@ -39,7 +39,7 @@ export default async function NotificationsPage() {
       <div className="grid gap-3 lg:grid-cols-2"><div className={`${card} flex items-start justify-between gap-4`}>
         <div><p className="font-semibold">WhatsApp automático</p><p className="mt-1 text-sm text-muted">{automation.configured ? "Meta Cloud API está configurada. Los cambios se procesan al instante y el recordatorio se prepara una vez al día." : "Modo manual activo. Añade las credenciales y plantillas de Meta para automatizarlo."}</p></div>
         <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${automation.configured ? "bg-gold text-black" : "bg-background text-muted"}`}>{automation.configured ? "ACTIVO" : automation.enabled ? "INCOMPLETO" : "MANUAL"}</span>
-      </div><div className={`${card} flex items-start justify-between gap-4`}><div><p className="font-semibold">Correo automático</p><p className="mt-1 text-sm text-muted">{emailAutomation.configured ? "Brevo está configurado para confirmaciones, cambios, cancelaciones y recordatorios." : "Configura Brevo y un remitente verificado para activar el correo transaccional."}</p></div><span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${emailAutomation.configured ? "bg-gold text-black" : "bg-background text-muted"}`}>{emailAutomation.configured ? "ACTIVO" : emailAutomation.enabled ? "INCOMPLETO" : "MANUAL"}</span></div></div>
+      </div><div className={`${card} flex items-start justify-between gap-4`}><div><p className="font-semibold">Correo automático</p><p className="mt-1 text-sm text-muted">{emailAutomation.configured ? "Brevo está configurado para confirmaciones, cambios, cancelaciones, recordatorios y solicitudes de reseña." : "Configura Brevo y un remitente verificado para activar el correo transaccional."}</p></div><span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${emailAutomation.configured ? "bg-gold text-black" : "bg-background text-muted"}`}>{emailAutomation.configured ? "ACTIVO" : emailAutomation.enabled ? "INCOMPLETO" : "MANUAL"}</span></div></div>
 
       <section className="space-y-3">
         <div className="flex items-center gap-2"><BellRing className="size-5 text-gold" /><h2 className="font-semibold">Huecos para la lista de espera</h2></div>
@@ -64,7 +64,9 @@ export default async function NotificationsPage() {
           if (!appointment) return null;
           const customer = Array.isArray(appointment.customers) ? appointment.customers[0] : appointment.customers;
           if (!customer) return null;
-          const message = notificationMessage(event.event_type, appointment, customer.full_name, settings?.business_name);
+          const baseMessage = notificationMessage(event.event_type, appointment, customer.full_name, settings?.business_name);
+          const reviewUrl = typeof event.payload?.review_url === "string" ? event.payload.review_url : null;
+          const message = event.event_type === "review_request" && reviewUrl ? `${baseMessage}\n\n${reviewUrl}` : baseMessage;
           const isEmail = event.channel === "email";
           if (isEmail && !customer.email) return null;
           const manualUrl = isEmail ? emailUrl(customer.email!, `${eventLabels[event.event_type] ?? "Actualización"} · ${settings?.business_name ?? "LA BARBER STUDIO"}`, message) : whatsappUrl(customer.phone, message);
