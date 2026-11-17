@@ -7,18 +7,18 @@ export function ConsentMap({ businessName, address, mapsUrl, embedUrl }: { busin
   const allowed = Boolean(useConsentPreferences()?.external);
 
   return (
-    <div className="mt-10 overflow-hidden rounded-3xl border border-white/10 bg-background">
+    <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-background sm:mt-10 sm:rounded-3xl">
       {allowed ? (
         <iframe
           title={`Mapa de ${businessName}`}
           src={embedUrl}
-          className="h-[22rem] w-full border-0 saturate-[0.9] contrast-[1.03] sm:h-[30rem]"
+          className="h-[18rem] w-full border-0 saturate-[0.95] contrast-[1.04] sm:h-[30rem]"
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
           allowFullScreen
         />
       ) : (
-        <div className="flex h-[22rem] flex-col items-center justify-center px-6 text-center sm:h-[30rem]">
+        <div className="flex h-[18rem] flex-col items-center justify-center px-5 text-center sm:h-[30rem] sm:px-6">
           <span className="flex size-14 items-center justify-center rounded-full border border-gold/35 text-gold"><MapPin size={25} /></span>
           <h3 className="mt-5 text-xl font-extrabold uppercase text-white">Mapa protegido</h3>
           <p className="mt-2 max-w-md text-sm leading-6 text-muted">Para mostrar el mapa, Google necesita cargar contenido externo. Puedes permitirlo ahora o abrir la dirección directamente.</p>

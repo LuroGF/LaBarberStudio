@@ -64,7 +64,7 @@ export function CookieConsent() {
   };
 
   return (
-    <aside aria-label="Preferencias de privacidad" className="fixed inset-x-4 bottom-20 z-[80] mx-auto max-w-3xl rounded-2xl border border-white/15 bg-[#1b1b1b]/95 p-5 shadow-2xl backdrop-blur-xl md:bottom-5 md:p-6">
+    <aside aria-label="Preferencias de privacidad" className="fixed inset-x-3 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] z-[80] mx-auto max-w-3xl rounded-2xl border border-white/15 bg-[#1b1b1b]/95 p-4 shadow-2xl backdrop-blur-xl sm:inset-x-4 sm:p-5 md:bottom-5 md:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-xl">
           <p className="text-sm font-extrabold uppercase tracking-[0.12em] text-white">Tu privacidad</p>

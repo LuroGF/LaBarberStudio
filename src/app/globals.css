@@ -89,8 +89,19 @@ input:disabled {
     linear-gradient(135deg, #252525 0%, #111111 48%, #1d1d1d 100%);
 }
 
-.services-grid {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+.mobile-card-scroller {
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+}
+
+.mobile-card-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .mobile-card-scroller {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  }
 }
 
 .legal-copy h2 {
