@@ -16,7 +16,7 @@ const createSchema = z.object({
   fullName: z.string().trim().min(2, "Introduce el nombre del administrador.").max(120),
   username: usernameSchema,
   email: z.email("El correo no es válido.").max(254),
-  password: z.string().min(12, "La contraseña debe tener al menos 12 caracteres.").max(200),
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres.").max(200),
   passwordConfirm: z.string().max(200),
 }).refine((data) => data.password === data.passwordConfirm, { message: "Las contraseñas no coinciden.", path: ["passwordConfirm"] });
 
