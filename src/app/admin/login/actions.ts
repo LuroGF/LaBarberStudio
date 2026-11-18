@@ -2,10 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { normalizeAdminUsername } from "@/lib/admin-usernames";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/admin";
 
 const schema = z.object({
-  email: z.string().trim().email().max(254),
+  username: z.string().trim().min(3).max(254),
   password: z.string().min(1).max(200),
 });
 
@@ -16,17 +18,36 @@ export type RecoveryState = { error?: string; ok?: string };
 
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const parsed = schema.safeParse({
-    email: formData.get("email"),
+    username: formData.get("username"),
     password: formData.get("password"),
   });
-  if (!parsed.success) return { error: "Introduce un correo y una contraseña válidos." };
+  if (!parsed.success) return { error: "Introduce un usuario y una contraseña válidos." };
 
+  const email = await resolveAdminEmail(parsed.data.username);
+  if (!email) return { error: "Usuario o contraseña incorrectos." };
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  // Mensaje genérico: no revelar si el correo existe.
-  if (error) return { error: "Correo o contraseña incorrectos." };
+  const { error } = await supabase.auth.signInWithPassword({ email, password: parsed.data.password });
+  // Mensaje genérico: no revelar si el usuario existe.
+  if (error) return { error: "Usuario o contraseña incorrectos." };
 
   redirect("/admin");
+}
+
+async function resolveAdminEmail(input: string) {
+  const value = input.trim();
+  // Compatibilidad temporal para no bloquear el acceso antes de ejecutar la migración
+  // y configurar el primer nombre de usuario.
+  if (value.includes("@")) return z.email().safeParse(value).success ? value.toLowerCase() : null;
+
+  try {
+    const admin = createServiceClient();
+    const { data: profile, error } = await admin.from("profiles").select("id").eq("login_username", normalizeAdminUsername(value)).eq("role", "admin").maybeSingle();
+    if (error || !profile) return null;
+    const { data, error: userError } = await admin.auth.admin.getUserById(profile.id);
+    return userError ? null : data.user?.email?.toLowerCase() ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function requestPasswordReset(

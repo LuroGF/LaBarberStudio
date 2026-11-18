@@ -13,8 +13,8 @@ export function LoginForm() {
     <div className="mt-6 space-y-4">
       <form action={action} className="space-y-4">
         <label className="block text-sm text-muted">
-          Correo
-          <input name="email" type="email" autoComplete="username" required className={field} />
+          Usuario
+          <input name="username" type="text" autoCapitalize="none" autoCorrect="off" autoComplete="username" required className={field} />
         </label>
         <label className="block text-sm text-muted">
           Contraseña

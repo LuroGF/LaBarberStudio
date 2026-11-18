@@ -8,8 +8,25 @@
   "lang": "es",
   "orientation": "portrait-primary",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "prefer_related_applications": false,
+  "categories": ["business", "lifestyle"],
   "background_color": "#111111",
   "theme_color": "#111111",
+  "shortcuts": [
+    {
+      "name": "Reservar cita",
+      "short_name": "Reservar",
+      "url": "/reservar",
+      "icons": [{ "src": "/brand/lb-mark-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Mis citas",
+      "short_name": "Mis citas",
+      "url": "/mi-cuenta",
+      "icons": [{ "src": "/brand/lb-mark-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "icons": [
     {
       "src": "/brand/lb-mark-192.png",

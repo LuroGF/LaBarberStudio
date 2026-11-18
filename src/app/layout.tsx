@@ -3,12 +3,14 @@ import "@fontsource-variable/montserrat";
 import "./globals.css";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import { CookieConsent } from "@/components/cookie-consent";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 
 export const metadata: Metadata = {
   title: "LA BARBER STUDIO | Barbería en Fuenlabrada",
   description: "Reserva tu cita en LA BARBER STUDIO, Fuenlabrada (Madrid).",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/brand/lb-mark.svg", apple: "/brand/lb-mark-192.png" },
+  appleWebApp: { capable: true, title: "LA BARBER", statusBarStyle: "black-translucent" },
 };
 
 export const viewport: Viewport = {
@@ -20,7 +22,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="min-h-dvh antialiased">{children}<ServiceWorkerRegistration /><CookieConsent /></body>
+      <body className="min-h-dvh antialiased">{children}<ServiceWorkerRegistration /><PwaInstallPrompt /><CookieConsent /></body>
     </html>
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Clock3, Settings } from "lucide-react";
+import { Bell, Clock3, Settings, ShieldCheck } from "lucide-react";
 import { requireAdmin } from "@/lib/auth";
 import { card } from "@/lib/ui";
 
@@ -9,6 +9,7 @@ const links = [
   { href: "/admin/horarios", title: "Horarios", text: "Horario semanal, vacaciones y bloqueos.", icon: Clock3 },
   { href: "/admin/notificaciones", title: "Avisos", text: "Mensajes pendientes para enviar por WhatsApp.", icon: Bell },
   { href: "/admin/ajustes", title: "Ajustes", text: "Datos del negocio y reglas de reserva.", icon: Settings },
+  { href: "/admin/administradores", title: "Administradores", text: "Usuarios con acceso al panel.", icon: ShieldCheck },
 ];
 
 export default async function MorePage() {

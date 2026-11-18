@@ -1,4 +1,4 @@
-const CACHE = "la-barber-v1";
+const CACHE = "la-barber-v2";
 const SHELL = ["/offline.html", "/brand/lb-mark.svg", "/brand/lb-mark-192.png", "/brand/lb-mark-512.png"];
 
 self.addEventListener("install", (event) => {
