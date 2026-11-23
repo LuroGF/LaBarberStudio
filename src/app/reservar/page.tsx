@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { connection } from "next/server";
@@ -9,9 +10,16 @@ import { addDaysStr, todayMadrid } from "@/lib/schedule";
 import { createServiceClient } from "@/lib/supabase/admin";
 import type { Service } from "@/lib/types";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Reservar cita | LA BARBER STUDIO",
   description: "Elige servicio, día y hora para reservar tu cita en LA BARBER STUDIO.",
+  alternates: { canonical: "/reservar" },
+  openGraph: {
+    url: "/reservar",
+    title: "Reservar cita | LA BARBER STUDIO",
+    description: "Elige servicio, día y hora para reservar tu cita en LA BARBER STUDIO.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "LA BARBER STUDIO · Barbería en Fuenlabrada" }],
+  },
 };
 
 async function BookingContent({ searchParams }: { searchParams: Promise<{ servicio?: string | string[] }> }) {

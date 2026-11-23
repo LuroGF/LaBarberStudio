@@ -1,9 +1,14 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { connection } from "next/server";
 import { LegalPageShell } from "@/components/legal-page-shell";
 import { getLegalSettings, legalContact } from "@/lib/legal-settings";
 
-export const metadata = { title: "Privacidad | LA BARBER STUDIO" };
+export const metadata: Metadata = {
+  title: "Privacidad | LA BARBER STUDIO",
+  description: "Información sobre el tratamiento y la protección de datos personales en LA BARBER STUDIO.",
+  robots: { index: false, follow: true },
+};
 
 async function Content() {
   await connection();

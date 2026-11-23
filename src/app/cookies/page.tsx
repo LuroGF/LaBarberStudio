@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import { LegalPageShell } from "@/components/legal-page-shell";
 import { CookieSettingsLink } from "@/components/cookie-consent";
 
-export const metadata = { title: "Cookies | LA BARBER STUDIO" };
+export const metadata: Metadata = {
+  title: "Cookies | LA BARBER STUDIO",
+  description: "Información sobre cookies, almacenamiento técnico y contenido externo en LA BARBER STUDIO.",
+  robots: { index: false, follow: true },
+};
 
 export default function Page() {
   return (

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -7,8 +8,11 @@ import { Wordmark } from "@/components/wordmark";
 import { ConsentMap } from "@/components/consent-map";
 import { CookieSettingsLink } from "@/components/cookie-consent";
 import { WEEKDAYS, formatEuros } from "@/lib/schedule";
+import { buildHairSalonJsonLd, serializeJsonLd } from "@/lib/seo";
 import { createServiceClient } from "@/lib/supabase/admin";
 import type { BusinessHourRow, Service } from "@/lib/types";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 type BusinessSettings = {
   business_name: string;
@@ -64,9 +68,11 @@ async function LandingContent() {
   const instagramUrl = instagramHandle ? `https://instagram.com/${instagramHandle}` : null;
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address)}`;
   const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(settings.address)}&output=embed`;
+  const jsonLd = buildHairSalonJsonLd(settings, services, hours);
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <SiteHeader />
       <main id="inicio" className="overflow-hidden pb-24 md:pb-0">
         <section className="relative isolate min-h-[calc(100svh-4rem)] overflow-hidden border-b border-white/10 sm:min-h-[calc(100dvh-5rem)]">
