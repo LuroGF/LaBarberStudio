@@ -1,10 +1,13 @@
 import { ImageResponse } from "next/og";
+import { SITE_URL } from "@/lib/site";
 
 export const alt = "LA BARBER STUDIO · Barbería en Fuenlabrada";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default function OpenGraphImage() {
+  const siteHost = new URL(SITE_URL).host;
+
   return new ImageResponse(
     <div
       style={{
@@ -80,7 +83,7 @@ export default function OpenGraphImage() {
           </div>
         </div>
         <div style={{ display: "flex", fontSize: 20, fontWeight: 700, color: "#d6b66f" }}>
-          labarber-studio.vercel.app
+          {siteHost}
         </div>
       </div>
     </div>,
