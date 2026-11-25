@@ -3,7 +3,7 @@
 Reservas online y panel de administración para LA BARBER STUDIO (Fuenlabrada, Madrid).
 Next.js 16 (App Router, TypeScript) · Tailwind CSS 4 · Supabase (PostgreSQL, Auth, RLS).
 
-Producción: [https://labarber-studio.vercel.app](https://labarber-studio.vercel.app)
+Producción: [https://www.labarberstudio.es](https://www.labarberstudio.es)
 
 ## Estado del proyecto
 
@@ -24,7 +24,7 @@ crear la cita desde el servidor y obtener un enlace privado para consultarla o c
 
 1. Crea un proyecto en [supabase.com](https://supabase.com) (región UE).
 2. En *SQL Editor* ejecuta, en este orden, los archivos de `supabase/migrations/`: `0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `0004_admin_functions.sql`, `0005_rebrand_la_barber_studio.sql`, `0006_customer_portal.sql`, `0007_waitlist.sql`, `0008_whatsapp_consent.sql`, `0009_legal_settings.sql`, `0010_email_notifications.sql` (o `supabase db push` con la CLI).
-3. En *Authentication → Users* crea el usuario administrador. Para el portal de clientes, deja permitido el registro por correo y mantén activada la confirmación de email. Configura las URL de redirección `http://localhost:3000/**` y `https://labarber-studio.vercel.app/**`. El teléfono sigue siendo obligatorio como dato de contacto, pero no se usa para autenticar.
+3. En *Authentication → Users* crea el usuario administrador. Para el portal de clientes, deja permitido el registro por correo y mantén activada la confirmación de email. Configura las URL de redirección `http://localhost:3000/**` y `https://www.labarberstudio.es/auth/callback`. El teléfono sigue siendo obligatorio como dato de contacto, pero no se usa para autenticar.
 4. Dale permisos de administrador (SQL Editor):
    ```sql
    insert into public.profiles (id, full_name, role)

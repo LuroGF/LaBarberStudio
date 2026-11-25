@@ -24,4 +24,4 @@ jobs:
           curl --fail-with-body --silent --show-error \
             --retry 2 --max-time 45 \
             --header "Authorization: Bearer $CRON_SECRET" \
-            https://labarber-studio.vercel.app/api/cron/recordatorios
+            https://www.labarberstudio.es/api/cron/recordatorios

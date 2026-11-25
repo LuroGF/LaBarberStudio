@@ -1,4 +1,4 @@
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://labarber-studio.vercel.app").replace(/\/$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.labarberstudio.es").replace(/\/$/, "");
 
 export const SITE_NAME = "LA BARBER STUDIO";
 
