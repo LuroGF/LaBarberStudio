@@ -25,6 +25,14 @@ crear la cita desde el servidor y obtener un enlace privado para consultarla o c
 1. Crea un proyecto en [supabase.com](https://supabase.com) (región UE).
 2. En *SQL Editor* ejecuta, en este orden, los archivos de `supabase/migrations/`: `0001_schema.sql`, `0002_functions.sql`, `0003_rls.sql`, `0004_admin_functions.sql`, `0005_rebrand_la_barber_studio.sql`, `0006_customer_portal.sql`, `0007_waitlist.sql`, `0008_whatsapp_consent.sql`, `0009_legal_settings.sql`, `0010_email_notifications.sql` (o `supabase db push` con la CLI).
 3. En *Authentication → Users* crea el usuario administrador. Para el portal de clientes, deja permitido el registro por correo y mantén activada la confirmación de email. Configura las URL de redirección `http://localhost:3000/**` y `https://www.labarberstudio.es/auth/callback`. El teléfono sigue siendo obligatorio como dato de contacto, pero no se usa para autenticar.
+   Para que los enlaces funcionen aunque el correo se abra en otro navegador, personaliza en *Authentication → Email Templates* los botones de **Confirm signup** y **Reset password**:
+   ```html
+   <!-- Confirm signup -->
+   <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup&redirect_to={{ .RedirectTo }}">Confirmar correo</a>
+
+   <!-- Reset password -->
+   <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&redirect_to={{ .RedirectTo }}">Restablecer contraseña</a>
+   ```
 4. Dale permisos de administrador (SQL Editor):
    ```sql
    insert into public.profiles (id, full_name, role)
