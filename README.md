@@ -53,6 +53,7 @@ src/app/admin/(panel)          Panel protegido (layout con navegación)
   servicios/                   Alta, edición, ocultar y borrado lógico
   horarios/                    Tramos por día, bloqueos y vacaciones
   citas/                       Agenda por día/semana/mes y cambios de estado
+  copias/                      Exportaciones CSV protegidas de clientes y citas
 src/lib/schedule.ts            Zona horaria de Madrid, euros, tramos (funciones puras, con tests)
 src/app/reservar               Flujo público de reserva
 src/app/cita/[token]           Consulta y cancelación con enlace privado
@@ -78,6 +79,7 @@ Decisiones de diseño que conviene mantener:
 - Todo se guarda en `timestamptz` y se muestra en Europe/Madrid (con pruebas de los cambios de hora de marzo y octubre).
 - WhatsApp automático es opt-in y tolerante a fallos: sin credenciales sigue el flujo manual; si Meta rechaza un envío, queda visible en el panel para enviarlo a mano.
 - En Vercel Hobby solo se usa un cron diario. Las confirmaciones, cambios y cancelaciones se envían mediante `after()` justo después de la acción; el cron queda reservado para los recordatorios del día siguiente.
+- El panel permite descargar copias CSV de clientes y citas. Contienen datos personales y deben guardarse en un almacenamiento privado.
 - Next.js 16 con `cacheComponents`: todo `/admin` depende de cookies y va bajo `<Suspense>`. Antes de tocar rutas, lee `node_modules/next/dist/docs/` (esta versión tiene cambios respecto a lo habitual; ver `AGENTS.md`).
 
 ## WhatsApp Cloud API (opcional)
